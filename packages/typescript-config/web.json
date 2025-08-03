@@ -1,0 +1,10 @@
+{
+  "extends": "./nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*", "./app/*", "./components/*"],
+      "@shared/*": ["../shared/src/*"]
+    }
+  }
+}
