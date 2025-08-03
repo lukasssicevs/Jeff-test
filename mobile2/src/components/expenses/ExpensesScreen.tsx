@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,16 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../lib/auth-context";
 import { expenseApi } from "../../lib/api-client";
 import type { Expense, ExpenseCategoryType } from "../../lib/types";
+import ExpenseFilters, { type FilterOptions } from "./ExpenseFilters";
+import ExportModal from "./ExportModal";
 
 const ExpensesScreen = () => {
   const { user } = useAuth();
@@ -23,6 +27,11 @@ const ExpensesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [filters, setFilters] = useState<FilterOptions>({});
   const [stats, setStats] = useState({
     totalAmount: 0,
     totalCount: 0,
@@ -36,6 +45,12 @@ const ExpensesScreen = () => {
     date: new Date().toISOString().split("T")[0],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Photo state
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhotoBase64, setSelectedPhotoBase64] = useState<string | null>(
+    null
+  );
 
   const categories: {
     value: ExpenseCategoryType;
@@ -133,6 +148,56 @@ const ExpensesScreen = () => {
     });
   };
 
+  // Filter expenses
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((expense) => {
+      if (filters.category && expense.category !== filters.category) {
+        return false;
+      }
+
+      if (filters.startDate && expense.date < filters.startDate) {
+        return false;
+      }
+
+      if (filters.endDate && expense.date > filters.endDate) {
+        return false;
+      }
+
+      if (filters.minAmount && expense.amount < filters.minAmount) {
+        return false;
+      }
+
+      if (filters.maxAmount && expense.amount > filters.maxAmount) {
+        return false;
+      }
+
+      if (
+        filters.search &&
+        !expense.description
+          .toLowerCase()
+          .includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [expenses, filters]);
+
+  // Calculate filter stats
+  const filteredStats = useMemo(() => {
+    const totalAmount = filteredExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    );
+    const totalCount = filteredExpenses.length;
+
+    return {
+      totalAmount,
+      totalCount,
+    };
+  }, [filteredExpenses]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -143,6 +208,84 @@ const ExpensesScreen = () => {
   const getCategoryEmoji = (category: string) => {
     const categoryObj = categories.find((c) => c.value === category);
     return categoryObj?.emoji || "📦";
+  };
+
+  // Handle photo selection
+  const handlePhotoSelect = async () => {
+    try {
+      // Request permissions
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permission needed",
+          "Please allow access to your photo library"
+        );
+        return;
+      }
+
+      // Show action sheet for camera or gallery
+      Alert.alert("Select Photo", "Choose a photo for your expense", [
+        {
+          text: "Camera",
+          onPress: async () => {
+            const cameraPermission =
+              await ImagePicker.requestCameraPermissionsAsync();
+            if (!cameraPermission.granted) {
+              Alert.alert(
+                "Permission needed",
+                "Please allow access to your camera"
+              );
+              return;
+            }
+
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.8,
+              base64: true,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+              setSelectedPhoto(result.assets[0].uri);
+              if (result.assets[0].base64) {
+                setSelectedPhotoBase64(result.assets[0].base64);
+              }
+            }
+          },
+        },
+        {
+          text: "Gallery",
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.8,
+              base64: true,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+              setSelectedPhoto(result.assets[0].uri);
+              if (result.assets[0].base64) {
+                setSelectedPhotoBase64(result.assets[0].base64);
+              }
+            }
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    } catch (error) {
+      console.error("Error selecting photo:", error);
+      Alert.alert("Error", "Failed to select photo");
+    }
+  };
+
+  // Handle photo removal
+  const handlePhotoRemove = () => {
+    setSelectedPhoto(null);
+    setSelectedPhotoBase64(null);
   };
 
   const handleAddExpense = async () => {
@@ -159,12 +302,23 @@ const ExpensesScreen = () => {
 
     setIsSubmitting(true);
     try {
-      const result = await expenseApi.createExpense({
+      // Prepare photo data if available
+      const photoData = selectedPhotoBase64
+        ? {
+            base64: selectedPhotoBase64,
+            mimeType: "image/jpeg",
+          }
+        : undefined;
+
+      const expenseData = {
         amount,
         category: formData.category,
         description: formData.description,
         date: formData.date,
-      });
+        photo: photoData,
+      };
+
+      const result = await expenseApi.createExpense(expenseData);
 
       if (result.data) {
         setShowAddModal(false);
@@ -174,6 +328,9 @@ const ExpensesScreen = () => {
           description: "",
           date: new Date().toISOString().split("T")[0],
         });
+        // Reset photo state
+        setSelectedPhoto(null);
+        setSelectedPhotoBase64(null);
         // Real-time subscription will handle the update automatically
         Alert.alert("Success", "Expense added successfully!");
       } else {
@@ -216,8 +373,14 @@ const ExpensesScreen = () => {
     );
   };
 
+  const handleExpensePress = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setShowDetailModal(true);
+  };
+
   const renderExpenseItem = ({ item }: { item: Expense }) => (
     <TouchableOpacity
+      onPress={() => handleExpensePress(item)}
       onLongPress={() => handleDeleteExpense(item)}
       style={{
         marginHorizontal: 16,
@@ -292,6 +455,19 @@ const ExpensesScreen = () => {
               <Text style={{ color: "#64748b", fontSize: 12 }}>
                 {new Date(item.date).toLocaleDateString()}
               </Text>
+              {item.photo_url && (
+                <View
+                  style={{
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    marginLeft: 8,
+                    backgroundColor: "rgba(34, 197, 94, 0.1)",
+                  }}
+                >
+                  <Text style={{ color: "#16a34a", fontSize: 12 }}>📷</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -384,7 +560,7 @@ const ExpensesScreen = () => {
               <Text
                 style={{ fontSize: 18, fontWeight: "bold", color: "#1e293b" }}
               >
-                {formatCurrency(stats.totalAmount)}
+                {formatCurrency(filteredStats.totalAmount)}
               </Text>
             </View>
           </View>
@@ -429,10 +605,64 @@ const ExpensesScreen = () => {
               <Text
                 style={{ fontSize: 18, fontWeight: "bold", color: "#1e293b" }}
               >
-                {stats.totalCount}
+                {filteredStats.totalCount}
               </Text>
             </View>
           </View>
+        </View>
+      </View>
+
+      {/* Filter and Export Buttons */}
+      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => setShowFilters(true)}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#cbd5e1",
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+            }}
+          >
+            <Text style={{ fontSize: 18, marginRight: 8 }}>🔍</Text>
+            <Text style={{ color: "#64748b", fontWeight: "500" }}>Filters</Text>
+            {Object.keys(filters).length > 0 && (
+              <View
+                style={{
+                  marginLeft: 8,
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: "#4f46e5",
+                }}
+              />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowExportModal(true)}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#cbd5e1",
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+            }}
+          >
+            <Text style={{ fontSize: 18, marginRight: 8 }}>📤</Text>
+            <Text style={{ color: "#64748b", fontWeight: "500" }}>Export</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -462,9 +692,18 @@ const ExpensesScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Hint */}
+      {filteredExpenses.length > 0 && (
+        <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
+            Tap to view details • Long press to delete
+          </Text>
+        </View>
+      )}
+
       {/* Expenses List */}
       <View style={{ flex: 1 }}>
-        {expenses.length === 0 ? (
+        {filteredExpenses.length === 0 ? (
           <View
             style={{
               flex: 1,
@@ -482,15 +721,19 @@ const ExpensesScreen = () => {
                 marginBottom: 8,
               }}
             >
-              No expenses yet
+              {expenses.length === 0
+                ? "No expenses yet"
+                : "No expenses match your filters"}
             </Text>
             <Text style={{ color: "#94a3b8", textAlign: "center" }}>
-              Start tracking your spending by adding your first expense
+              {expenses.length === 0
+                ? "Start tracking your spending by adding your first expense"
+                : "Try adjusting your filters or add a new expense"}
             </Text>
           </View>
         ) : (
           <FlatList
-            data={expenses}
+            data={filteredExpenses}
             renderItem={renderExpenseItem}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
@@ -512,11 +755,11 @@ const ExpensesScreen = () => {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={{ flex: 1 }}>
-          <LinearGradient
-            colors={["#f8fafc", "#e0f2fe", "#e0e7ff"]}
-            style={{ flex: 1 }}
-          >
+        <LinearGradient
+          colors={["#f8fafc", "#e0f2fe", "#e0e7ff"]}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={{ flex: 1 }}>
             {/* Header */}
             <View
               style={{
@@ -540,7 +783,13 @@ const ExpensesScreen = () => {
                   alignItems: "center",
                 }}
               >
-                <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowAddModal(false);
+                    setSelectedPhoto(null);
+                    setSelectedPhotoBase64(null);
+                  }}
+                >
                   <Text style={{ color: "#4f46e5", fontSize: 18 }}>Cancel</Text>
                 </TouchableOpacity>
                 <Text
@@ -754,10 +1003,399 @@ const ExpensesScreen = () => {
                     placeholderTextColor="#64748b"
                   />
                 </View>
+
+                {/* Photo Upload */}
+                <View
+                  style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 8,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "500",
+                      color: "#4f46e5",
+                      marginBottom: 12,
+                    }}
+                  >
+                    Receipt Photo (Optional)
+                  </Text>
+                  {!selectedPhoto ? (
+                    <TouchableOpacity
+                      onPress={handlePhotoSelect}
+                      style={{
+                        borderWidth: 2,
+                        borderStyle: "dashed",
+                        borderColor: "#cbd5e1",
+                        borderRadius: 8,
+                        padding: 24,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#f8fafc",
+                      }}
+                    >
+                      <Text style={{ fontSize: 32, marginBottom: 8 }}>📷</Text>
+                      <Text
+                        style={{
+                          color: "#64748b",
+                          fontWeight: "500",
+                          fontSize: 16,
+                        }}
+                      >
+                        Add Photo
+                      </Text>
+                      <Text
+                        style={{
+                          color: "#94a3b8",
+                          fontSize: 14,
+                          textAlign: "center",
+                        }}
+                      >
+                        Camera or Gallery
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={{ position: "relative" }}>
+                      <Image
+                        source={{ uri: selectedPhoto }}
+                        style={{
+                          width: "100%",
+                          height: 160,
+                          borderRadius: 8,
+                          resizeMode: "cover",
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={handlePhotoRemove}
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          backgroundColor: "#ef4444",
+                          borderRadius: 16,
+                          padding: 8,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 4,
+                          elevation: 5,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            fontWeight: "bold",
+                            fontSize: 12,
+                          }}
+                        >
+                          ✕
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
             </ScrollView>
-          </LinearGradient>
-        </SafeAreaView>
+          </SafeAreaView>
+        </LinearGradient>
+      </Modal>
+
+      {/* Filters Modal */}
+      <ExpenseFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        expenses={filteredExpenses}
+        visible={showExportModal}
+        onClose={() => setShowExportModal(false)}
+      />
+
+      {/* Expense Detail Modal */}
+      <Modal
+        visible={showDetailModal && selectedExpense !== null}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <LinearGradient
+          colors={["#f8fafc", "#e0f2fe", "#e0e7ff"]}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={{ flex: 1 }}>
+            {/* Header */}
+            <View
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(255, 255, 255, 0.2)",
+                marginBottom: 16,
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowDetailModal(false);
+                    setSelectedExpense(null);
+                  }}
+                >
+                  <Text style={{ color: "#4f46e5", fontSize: 18 }}>Close</Text>
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: "#1e293b",
+                  }}
+                >
+                  Expense Details
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (selectedExpense) {
+                      const expenseToDelete = selectedExpense;
+                      setShowDetailModal(false);
+                      setSelectedExpense(null);
+                      setTimeout(
+                        () => handleDeleteExpense(expenseToDelete),
+                        300
+                      );
+                    }
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#dc2626",
+                      fontSize: 18,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <ScrollView style={{ flex: 1, paddingHorizontal: 24 }}>
+              {selectedExpense && (
+                <View style={{ gap: 24 }}>
+                  {/* Amount */}
+                  <View
+                    style={{
+                      padding: 24,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 8,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: "#64748b",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Amount
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 32,
+                        fontWeight: "bold",
+                        color: "#1e293b",
+                      }}
+                    >
+                      {formatCurrency(selectedExpense.amount)}
+                    </Text>
+                  </View>
+
+                  {/* Description */}
+                  <View
+                    style={{
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: "#4f46e5",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Description
+                    </Text>
+                    <Text style={{ fontSize: 16, color: "#1e293b" }}>
+                      {selectedExpense.description}
+                    </Text>
+                  </View>
+
+                  {/* Category */}
+                  <View
+                    style={{
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: "#4f46e5",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Category
+                    </Text>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text style={{ fontSize: 24, marginRight: 12 }}>
+                        {getCategoryEmoji(selectedExpense.category)}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: "#1e293b",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {selectedExpense.category}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Date */}
+                  <View
+                    style={{
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: "#4f46e5",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Date
+                    </Text>
+                    <Text style={{ fontSize: 16, color: "#1e293b" }}>
+                      {new Date(selectedExpense.date).toLocaleDateString(
+                        "en-US",
+                        {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )}
+                    </Text>
+                  </View>
+
+                  {/* Photo if exists */}
+                  {selectedExpense.photo_url && (
+                    <View
+                      style={{
+                        padding: 16,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: "rgba(255, 255, 255, 0.2)",
+                        backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 8,
+                        elevation: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "500",
+                          color: "#4f46e5",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Receipt Photo
+                      </Text>
+                      <View style={{ borderRadius: 8, overflow: "hidden" }}>
+                        <Image
+                          source={{ uri: selectedExpense.photo_url }}
+                          style={{
+                            width: "100%",
+                            height: 200,
+                            borderRadius: 8,
+                            resizeMode: "cover",
+                          }}
+                        />
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
       </Modal>
     </SafeAreaView>
   );

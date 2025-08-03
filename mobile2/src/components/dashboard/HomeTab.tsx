@@ -22,6 +22,12 @@ export default function HomeTab({
     totalAmount: 0,
     totalCount: 0,
     thisMonth: 0,
+    dailyAverage: 0,
+    mostPopularCategory: null as {
+      name: string;
+      emoji: string;
+      count: number;
+    } | null,
   });
   const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
 
@@ -78,10 +84,37 @@ export default function HomeTab({
           0
         );
 
+        // Calculate daily average for this month
+        const currentDay = now.getDate();
+        const dailyAverage = thisMonth / currentDay;
+
+        // Find most popular category
+        const categoryCount: Record<string, number> = {};
+        expenses.forEach((expense) => {
+          categoryCount[expense.category] =
+            (categoryCount[expense.category] || 0) + 1;
+        });
+
+        const mostPopularCategoryEntry = Object.entries(categoryCount).sort(
+          ([, a], [, b]) => b - a
+        )[0];
+
+        const mostPopularCategory = mostPopularCategoryEntry
+          ? {
+              name:
+                mostPopularCategoryEntry[0].charAt(0).toUpperCase() +
+                mostPopularCategoryEntry[0].slice(1),
+              emoji: getCategoryEmoji(mostPopularCategoryEntry[0]),
+              count: mostPopularCategoryEntry[1],
+            }
+          : null;
+
         setStats({
           totalAmount,
           totalCount: expenses.length,
           thisMonth,
+          dailyAverage: isNaN(dailyAverage) ? 0 : dailyAverage,
+          mostPopularCategory,
         });
 
         // Get recent expenses (last 3)
@@ -178,94 +211,229 @@ export default function HomeTab({
           </View>
         </View>
 
-        {/* Quick Stats Cards */}
-        <View style={{ flexDirection: "row", marginBottom: 24 }}>
-          <View
-            style={{
-              flex: 1,
-              marginRight: 8,
-              padding: 16,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: "rgba(255, 255, 255, 0.2)",
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 8,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <LinearGradient
-                colors={["#10b981", "#14b8a6"]}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 12,
-                }}
-              >
-                <Text style={{ fontSize: 18 }}>💰</Text>
-              </LinearGradient>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 12, color: "#64748b", fontWeight: "500" }}
+        {/* Stats Cards */}
+        <View style={{ marginBottom: 24 }}>
+          {/* Top Row */}
+          <View style={{ flexDirection: "row", marginBottom: 12 }}>
+            <View
+              style={{
+                flex: 1,
+                marginRight: 6,
+                padding: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <LinearGradient
+                  colors={["#10b981", "#14b8a6"]}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 10,
+                  }}
                 >
-                  This Month
-                </Text>
-                <Text
-                  style={{ fontSize: 18, fontWeight: "bold", color: "#1e293b" }}
+                  <Text style={{ fontSize: 16 }}>💰</Text>
+                </LinearGradient>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#64748b",
+                      fontWeight: "500",
+                    }}
+                  >
+                    This Month
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                    }}
+                  >
+                    {formatCurrency(stats.thisMonth)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                marginLeft: 6,
+                padding: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <LinearGradient
+                  colors={["#3b82f6", "#1d4ed8"]}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 10,
+                  }}
                 >
-                  {formatCurrency(stats.thisMonth)}
-                </Text>
+                  <Text style={{ fontSize: 16 }}>📊</Text>
+                </LinearGradient>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#64748b",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Total Entries
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                    }}
+                  >
+                    {stats.totalCount}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
 
-          <View
-            style={{
-              flex: 1,
-              marginLeft: 8,
-              padding: 16,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: "rgba(255, 255, 255, 0.2)",
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 8,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <LinearGradient
-                colors={["#f59e0b", "#d97706"]}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 12,
-                }}
-              >
-                <Text style={{ fontSize: 18 }}>📊</Text>
-              </LinearGradient>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 12, color: "#64748b", fontWeight: "500" }}
+          {/* Bottom Row */}
+          <View style={{ flexDirection: "row" }}>
+            <View
+              style={{
+                flex: 1,
+                marginRight: 6,
+                padding: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <LinearGradient
+                  colors={["#8b5cf6", "#7c3aed"]}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 10,
+                  }}
                 >
-                  Total Expenses
-                </Text>
-                <Text
-                  style={{ fontSize: 18, fontWeight: "bold", color: "#1e293b" }}
+                  <Text style={{ fontSize: 16 }}>📈</Text>
+                </LinearGradient>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#64748b",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Daily Avg
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                    }}
+                  >
+                    {formatCurrency(stats.dailyAverage)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                marginLeft: 6,
+                padding: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <LinearGradient
+                  colors={["#f59e0b", "#d97706"]}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 10,
+                  }}
                 >
-                  {stats.totalCount}
-                </Text>
+                  <Text style={{ fontSize: 16 }}>
+                    {stats.mostPopularCategory?.emoji || "🎯"}
+                  </Text>
+                </LinearGradient>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: "#64748b",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Top Category
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "bold",
+                      color: "#1e293b",
+                    }}
+                  >
+                    {stats.mostPopularCategory?.name || "None"}
+                  </Text>
+                  {stats.mostPopularCategory && (
+                    <Text style={{ fontSize: 10, color: "#64748b" }}>
+                      {stats.mostPopularCategory.count} entries
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
           </View>
@@ -308,36 +476,6 @@ export default function HomeTab({
                       style={{ color: "rgba(190, 242, 100, 1)", fontSize: 14 }}
                     >
                       Track your spending
-                    </Text>
-                  </View>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => onTabChange?.("expenses")}
-              style={{ width: "100%", borderRadius: 12, overflow: "hidden" }}
-            >
-              <LinearGradient
-                colors={["#10b981", "#14b8a6"]}
-                style={{ paddingVertical: 16, paddingHorizontal: 24 }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ fontSize: 24, marginRight: 16 }}>📈</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        color: "white",
-                        fontSize: 18,
-                        fontWeight: "600",
-                      }}
-                    >
-                      View All Expenses
-                    </Text>
-                    <Text
-                      style={{ color: "rgba(167, 243, 208, 1)", fontSize: 14 }}
-                    >
-                      Analyze your spending
                     </Text>
                   </View>
                 </View>
@@ -425,14 +563,6 @@ export default function HomeTab({
                   </Text>
                 </View>
               ))}
-              <TouchableOpacity
-                onPress={() => onTabChange?.("expenses")}
-                style={{ alignItems: "center", paddingTop: 8 }}
-              >
-                <Text style={{ color: "#4f46e5", fontWeight: "500" }}>
-                  View all expenses →
-                </Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>

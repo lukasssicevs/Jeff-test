@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -36,6 +36,10 @@ export default function ExpenseFilters({
 }: ExpenseFiltersProps) {
   const [localFilters, setLocalFilters] = useState<FilterOptions>(filters);
 
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
   const handleFilterChange = (key: keyof FilterOptions, value: any) => {
     setLocalFilters({
       ...localFilters,
@@ -49,10 +53,9 @@ export default function ExpenseFilters({
   };
 
   const clearFilters = () => {
-    const emptyFilters: FilterOptions = {};
-    setLocalFilters(emptyFilters);
-    onFiltersChange(emptyFilters);
-    Alert.alert("Filters Cleared", "All filters have been reset.");
+    setLocalFilters({});
+    onFiltersChange({});
+    onClose();
   };
 
   const categories = Object.values(ExpenseCategory) as ExpenseCategoryType[];
@@ -84,13 +87,17 @@ export default function ExpenseFilters({
     >
       <LinearGradient
         colors={["#f8fafc", "#e0f2fe", "#e0e7ff"]}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <SafeAreaView className="flex-1">
+        <SafeAreaView style={{ flex: 1 }}>
           {/* Header */}
           <View
-            className="px-6 py-4 border-b border-white/20 mb-4"
             style={{
+              paddingHorizontal: 24,
+              paddingVertical: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(255, 255, 255, 0.2)",
+              marginBottom: 16,
               backgroundColor: "rgba(255, 255, 255, 0.8)",
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
@@ -99,27 +106,40 @@ export default function ExpenseFilters({
               elevation: 8,
             }}
           >
-            <View className="flex-row justify-between items-center">
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <TouchableOpacity onPress={onClose}>
-                <Text className="text-indigo-600 text-lg">Cancel</Text>
+                <Text style={{ color: "#4f46e5", fontSize: 18 }}>Cancel</Text>
               </TouchableOpacity>
-              <Text className="text-lg font-semibold text-slate-800">
+              <Text
+                style={{ fontSize: 18, fontWeight: "600", color: "#1e293b" }}
+              >
                 Filter Expenses
               </Text>
               <TouchableOpacity onPress={applyFilters}>
-                <Text className="text-indigo-600 text-lg font-semibold">
+                <Text
+                  style={{ color: "#4f46e5", fontSize: 18, fontWeight: "600" }}
+                >
                   Apply
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <ScrollView className="flex-1 px-6">
-            <View className="space-y-6">
+          <ScrollView style={{ flex: 1, paddingHorizontal: 24 }}>
+            <View style={{ gap: 24 }}>
               {/* Search */}
               <View
-                className="p-4 rounded-xl border border-white/20"
                 style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.2)",
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -128,22 +148,42 @@ export default function ExpenseFilters({
                   elevation: 8,
                 }}
               >
-                <Text className="text-sm font-medium text-indigo-700 mb-3">
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "500",
+                    color: "#4f46e5",
+                    marginBottom: 12,
+                  }}
+                >
                   Search Description
                 </Text>
                 <TextInput
                   value={localFilters.search || ""}
                   onChangeText={(value) => handleFilterChange("search", value)}
                   placeholder="Search expenses..."
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-white/60 text-slate-800"
+                  style={{
+                    width: "100%",
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: "#cbd5e1",
+                    borderRadius: 8,
+                    backgroundColor: "rgba(255, 255, 255, 0.6)",
+                    color: "#1e293b",
+                    fontSize: 16,
+                  }}
                   placeholderTextColor="#64748b"
                 />
               </View>
 
               {/* Category Filter */}
               <View
-                className="p-4 rounded-xl border border-white/20"
                 style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.2)",
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -152,24 +192,42 @@ export default function ExpenseFilters({
                   elevation: 8,
                 }}
               >
-                <Text className="text-sm font-medium text-indigo-700 mb-3">
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "500",
+                    color: "#4f46e5",
+                    marginBottom: 12,
+                  }}
+                >
                   Category
                 </Text>
-                <View className="flex-row flex-wrap">
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                >
                   <TouchableOpacity
                     onPress={() => handleFilterChange("category", undefined)}
-                    className={`px-4 py-2 rounded-lg mr-2 mb-2 border ${
-                      !localFilters.category
-                        ? "bg-indigo-100 border-indigo-300"
-                        : "border-slate-300 bg-white/60"
-                    }`}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: !localFilters.category
+                        ? "#4f46e5"
+                        : "#cbd5e1",
+                      backgroundColor: !localFilters.category
+                        ? "rgba(99, 102, 241, 0.1)"
+                        : "rgba(255, 255, 255, 0.6)",
+                      marginRight: 8,
+                      marginBottom: 8,
+                    }}
                   >
                     <Text
-                      className={`text-sm font-medium ${
-                        !localFilters.category
-                          ? "text-indigo-700"
-                          : "text-slate-600"
-                      }`}
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "500",
+                        color: !localFilters.category ? "#4338ca" : "#64748b",
+                      }}
                     >
                       All
                     </Text>
@@ -178,18 +236,32 @@ export default function ExpenseFilters({
                     <TouchableOpacity
                       key={category}
                       onPress={() => handleFilterChange("category", category)}
-                      className={`px-4 py-2 rounded-lg mr-2 mb-2 border ${
-                        localFilters.category === category
-                          ? "bg-indigo-100 border-indigo-300"
-                          : "border-slate-300 bg-white/60"
-                      }`}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor:
+                          localFilters.category === category
+                            ? "#4f46e5"
+                            : "#cbd5e1",
+                        backgroundColor:
+                          localFilters.category === category
+                            ? "rgba(99, 102, 241, 0.1)"
+                            : "rgba(255, 255, 255, 0.6)",
+                        marginRight: 8,
+                        marginBottom: 8,
+                      }}
                     >
                       <Text
-                        className={`text-sm font-medium ${
-                          localFilters.category === category
-                            ? "text-indigo-700"
-                            : "text-slate-600"
-                        }`}
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "500",
+                          color:
+                            localFilters.category === category
+                              ? "#4338ca"
+                              : "#64748b",
+                        }}
                       >
                         {getCategoryEmoji(category)}{" "}
                         {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -199,10 +271,13 @@ export default function ExpenseFilters({
                 </View>
               </View>
 
-              {/* Amount Range */}
+              {/* Date Range */}
               <View
-                className="p-4 rounded-xl border border-white/20"
                 style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.2)",
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -211,12 +286,114 @@ export default function ExpenseFilters({
                   elevation: 8,
                 }}
               >
-                <Text className="text-sm font-medium text-indigo-700 mb-3">
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "500",
+                    color: "#4f46e5",
+                    marginBottom: 12,
+                  }}
+                >
+                  Date Range
+                </Text>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        marginBottom: 4,
+                      }}
+                    >
+                      From
+                    </Text>
+                    <TextInput
+                      value={localFilters.startDate || ""}
+                      onChangeText={(value) =>
+                        handleFilterChange("startDate", value)
+                      }
+                      placeholder="YYYY-MM-DD"
+                      style={{
+                        width: "100%",
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderWidth: 1,
+                        borderColor: "#cbd5e1",
+                        borderRadius: 6,
+                        backgroundColor: "rgba(255, 255, 255, 0.6)",
+                        color: "#1e293b",
+                        fontSize: 14,
+                      }}
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        marginBottom: 4,
+                      }}
+                    >
+                      To
+                    </Text>
+                    <TextInput
+                      value={localFilters.endDate || ""}
+                      onChangeText={(value) =>
+                        handleFilterChange("endDate", value)
+                      }
+                      placeholder="YYYY-MM-DD"
+                      style={{
+                        width: "100%",
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderWidth: 1,
+                        borderColor: "#cbd5e1",
+                        borderRadius: 6,
+                        backgroundColor: "rgba(255, 255, 255, 0.6)",
+                        color: "#1e293b",
+                        fontSize: 14,
+                      }}
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* Amount Range */}
+              <View
+                style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.2)",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "500",
+                    color: "#4f46e5",
+                    marginBottom: 12,
+                  }}
+                >
                   Amount Range
                 </Text>
-                <View className="flex-row space-x-3">
-                  <View className="flex-1">
-                    <Text className="text-xs text-slate-600 mb-1">
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        marginBottom: 4,
+                      }}
+                    >
                       Min Amount
                     </Text>
                     <TextInput
@@ -227,14 +404,30 @@ export default function ExpenseFilters({
                           value ? parseFloat(value) : undefined
                         )
                       }
-                      placeholder="$0"
+                      placeholder="0.00"
                       keyboardType="numeric"
-                      className="px-3 py-2 border border-slate-300 rounded-lg bg-white/60 text-slate-800"
+                      style={{
+                        width: "100%",
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderWidth: 1,
+                        borderColor: "#cbd5e1",
+                        borderRadius: 6,
+                        backgroundColor: "rgba(255, 255, 255, 0.6)",
+                        color: "#1e293b",
+                        fontSize: 14,
+                      }}
                       placeholderTextColor="#64748b"
                     />
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-xs text-slate-600 mb-1">
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        marginBottom: 4,
+                      }}
+                    >
                       Max Amount
                     </Text>
                     <TextInput
@@ -245,56 +438,19 @@ export default function ExpenseFilters({
                           value ? parseFloat(value) : undefined
                         )
                       }
-                      placeholder="$999"
+                      placeholder="1000.00"
                       keyboardType="numeric"
-                      className="px-3 py-2 border border-slate-300 rounded-lg bg-white/60 text-slate-800"
-                      placeholderTextColor="#64748b"
-                    />
-                  </View>
-                </View>
-              </View>
-
-              {/* Date Range */}
-              <View
-                className="p-4 rounded-xl border border-white/20"
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.8)",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 8,
-                }}
-              >
-                <Text className="text-sm font-medium text-indigo-700 mb-3">
-                  Date Range
-                </Text>
-                <View className="flex-row space-x-3">
-                  <View className="flex-1">
-                    <Text className="text-xs text-slate-600 mb-1">
-                      Start Date
-                    </Text>
-                    <TextInput
-                      value={localFilters.startDate || ""}
-                      onChangeText={(value) =>
-                        handleFilterChange("startDate", value)
-                      }
-                      placeholder="YYYY-MM-DD"
-                      className="px-3 py-2 border border-slate-300 rounded-lg bg-white/60 text-slate-800"
-                      placeholderTextColor="#64748b"
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-xs text-slate-600 mb-1">
-                      End Date
-                    </Text>
-                    <TextInput
-                      value={localFilters.endDate || ""}
-                      onChangeText={(value) =>
-                        handleFilterChange("endDate", value)
-                      }
-                      placeholder="YYYY-MM-DD"
-                      className="px-3 py-2 border border-slate-300 rounded-lg bg-white/60 text-slate-800"
+                      style={{
+                        width: "100%",
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderWidth: 1,
+                        borderColor: "#cbd5e1",
+                        borderRadius: 6,
+                        backgroundColor: "rgba(255, 255, 255, 0.6)",
+                        color: "#1e293b",
+                        fontSize: 14,
+                      }}
                       placeholderTextColor="#64748b"
                     />
                   </View>
@@ -305,16 +461,26 @@ export default function ExpenseFilters({
               {hasActiveFilters && (
                 <TouchableOpacity
                   onPress={clearFilters}
-                  className="w-full rounded-xl overflow-hidden"
+                  style={{
+                    width: "100%",
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#dc2626",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    alignItems: "center",
+                  }}
                 >
-                  <LinearGradient
-                    colors={["#ef4444", "#dc2626"]}
-                    className="py-4 px-6"
+                  <Text
+                    style={{
+                      color: "#dc2626",
+                      fontSize: 16,
+                      fontWeight: "500",
+                    }}
                   >
-                    <Text className="text-white text-center text-lg font-semibold">
-                      Clear All Filters
-                    </Text>
-                  </LinearGradient>
+                    Clear All Filters
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>

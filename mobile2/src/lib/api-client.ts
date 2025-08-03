@@ -217,37 +217,46 @@ export class ExpenseApi {
     expense: CreateExpenseRequest
   ): Promise<ApiResponse<Expense>> {
     try {
-      // Get the current authenticated user
+      // Get the current authenticated user and session
       const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (userError || !user) {
+      if (sessionError || !session?.user) {
         return { error: "User not authenticated" };
       }
+
+      const user = session.user;
 
       let photoUrl: string | undefined;
 
       // Handle photo upload if present
       if (expense.photo) {
-        const uploadResult = await this.uploadPhoto(expense.photo);
+        const uploadResult = await this.uploadPhoto(expense.photo, user.id);
         if (uploadResult.error) {
-          return { error: uploadResult.error };
+          return { error: `Photo upload failed: ${uploadResult.error}` };
         }
         photoUrl = uploadResult.data;
       }
 
+      // Ensure proper date formatting - add time to make it unambiguous
+      const dateString = expense.date.includes("T")
+        ? expense.date
+        : `${expense.date}T12:00:00.000Z`;
+
+      const insertData = {
+        user_id: user.id, // Add the user_id for RLS policy
+        amount: expense.amount,
+        category: expense.category,
+        description: expense.description,
+        date: dateString, // Use properly formatted date
+        ...(photoUrl && { photo_url: photoUrl }),
+      };
+
       const { data, error } = await supabase
         .from("expenses")
-        .insert({
-          user_id: user.id, // Add the user_id for RLS policy
-          amount: expense.amount,
-          category: expense.category,
-          description: expense.description,
-          date: new Date(expense.date).toISOString(), // Convert to datetime format
-          ...(photoUrl && { photo_url: photoUrl }),
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -295,18 +304,33 @@ export class ExpenseApi {
     }
   }
 
-  private async uploadPhoto(photo: {
-    base64: string;
-    mimeType: string;
-  }): Promise<ApiResponse<string>> {
+  private async uploadPhoto(
+    photo: {
+      base64: string;
+      mimeType: string;
+    },
+    userId: string
+  ): Promise<ApiResponse<string>> {
     try {
-      const fileName = `expense-${Date.now()}.jpg`;
+      // Generate unique filename with proper extension
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2);
+      const extension = photo.mimeType.includes("jpeg") ? "jpg" : "png";
+      const fileName = `expense_${timestamp}_${randomId}.${extension}`;
 
-      // Handle base64 upload for mobile
+      // Create user-specific file path (required for RLS)
+      const filePath = `${userId}/${fileName}`;
+
+      // Convert base64 to ArrayBuffer for proper upload
+      const arrayBuffer = decode(photo.base64);
+
+      // Handle base64 upload for mobile with user path
       const { data, error } = await supabase.storage
         .from("expense-photos")
-        .upload(fileName, decode(photo.base64), {
+        .upload(filePath, arrayBuffer, {
           contentType: photo.mimeType,
+          cacheControl: "3600",
+          upsert: false,
         });
 
       if (error) {
@@ -327,14 +351,21 @@ export class ExpenseApi {
   }
 }
 
-// Simple base64 decode function for React Native
-function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+// Base64 decode function for React Native - returns ArrayBuffer for Supabase compatibility
+function decode(base64: string): ArrayBuffer {
+  try {
+    // Remove data URL prefix if present
+    const cleanBase64 = base64.replace(/^data:image\/[a-z]+;base64,/, "");
+
+    const binaryString = atob(cleanBase64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  } catch (error) {
+    throw new Error("Invalid base64 data");
   }
-  return bytes;
 }
 
 export class ExpenseExporter {

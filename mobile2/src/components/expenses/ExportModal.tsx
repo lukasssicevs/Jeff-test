@@ -54,14 +54,14 @@ export default function ExportModal({
       } else {
         Alert.alert(
           "Export Complete",
-          `File saved as ${fileName} in your documents folder.`
+          `File saved as ${fileName} in app documents`
         );
       }
 
       onClose();
     } catch (error) {
       console.error("Export error:", error);
-      Alert.alert("Export Failed", "An error occurred while exporting");
+      Alert.alert("Export Failed", "An error occurred during export");
     } finally {
       setExporting(false);
     }
@@ -74,21 +74,25 @@ export default function ExportModal({
       presentationStyle="pageSheet"
       transparent={true}
     >
-      <View className="flex-1 justify-end">
+      <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <LinearGradient
           colors={["rgba(0,0,0,0.5)", "rgba(0,0,0,0.8)"]}
-          className="flex-1"
+          style={{ flex: 1 }}
         >
           <TouchableOpacity
-            className="flex-1"
+            style={{ flex: 1 }}
             onPress={onClose}
             activeOpacity={1}
           />
 
           <View
-            className="rounded-t-3xl p-6 border-t border-white/20"
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.95)",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 24,
+              borderTopWidth: 1,
+              borderTopColor: "rgba(255, 255, 255, 0.2)",
               shadowColor: "#000",
               shadowOffset: { width: 0, height: -4 },
               shadowOpacity: 0.1,
@@ -96,34 +100,69 @@ export default function ExportModal({
               elevation: 16,
             }}
           >
-            <View className="items-center mb-6">
-              <View className="w-12 h-1 bg-slate-300 rounded-full mb-4" />
-              <Text className="text-xl font-bold text-slate-800 mb-2">
+            <View style={{ alignItems: "center", marginBottom: 24 }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 4,
+                  backgroundColor: "#cbd5e1",
+                  borderRadius: 2,
+                  marginBottom: 16,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "600",
+                  color: "#1e293b",
+                  marginBottom: 8,
+                }}
+              >
                 Export Expenses
               </Text>
-              <Text className="text-slate-600 text-center">
-                Export {expenses.length} expenses to file
+              <Text style={{ color: "#64748b", textAlign: "center" }}>
+                Choose a format to export your {expenses.length} expenses
               </Text>
             </View>
 
-            <View className="space-y-3">
+            <View style={{ gap: 16 }}>
+              {/* CSV Export */}
               <TouchableOpacity
                 onPress={() => handleExport("csv")}
                 disabled={exporting}
-                className="w-full rounded-xl overflow-hidden"
+                style={{
+                  width: "100%",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
               >
                 <LinearGradient
                   colors={["#10b981", "#14b8a6"]}
-                  className="py-4 px-6"
+                  style={{
+                    paddingVertical: 16,
+                    paddingHorizontal: 24,
+                    opacity: exporting ? 0.5 : 1,
+                  }}
                 >
-                  <View className="flex-row items-center justify-center">
-                    <Text className="text-2xl mr-3">📊</Text>
-                    <View className="flex-1">
-                      <Text className="text-white text-lg font-semibold">
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={{ fontSize: 24, marginRight: 16 }}>📊</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 18,
+                          fontWeight: "600",
+                        }}
+                      >
                         Export as CSV
                       </Text>
-                      <Text className="text-emerald-100 text-sm">
-                        Compatible with Excel and Google Sheets
+                      <Text
+                        style={{
+                          color: "rgba(167, 243, 208, 1)",
+                          fontSize: 14,
+                        }}
+                      >
+                        Spreadsheet compatible format
                       </Text>
                     </View>
                     {exporting && (
@@ -133,23 +172,43 @@ export default function ExportModal({
                 </LinearGradient>
               </TouchableOpacity>
 
+              {/* JSON Export */}
               <TouchableOpacity
                 onPress={() => handleExport("json")}
                 disabled={exporting}
-                className="w-full rounded-xl overflow-hidden"
+                style={{
+                  width: "100%",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
               >
                 <LinearGradient
                   colors={["#4f46e5", "#3b82f6"]}
-                  className="py-4 px-6"
+                  style={{
+                    paddingVertical: 16,
+                    paddingHorizontal: 24,
+                    opacity: exporting ? 0.5 : 1,
+                  }}
                 >
-                  <View className="flex-row items-center justify-center">
-                    <Text className="text-2xl mr-3">📄</Text>
-                    <View className="flex-1">
-                      <Text className="text-white text-lg font-semibold">
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={{ fontSize: 24, marginRight: 16 }}>🔧</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 18,
+                          fontWeight: "600",
+                        }}
+                      >
                         Export as JSON
                       </Text>
-                      <Text className="text-blue-100 text-sm">
-                        For developers and data analysis
+                      <Text
+                        style={{
+                          color: "rgba(190, 242, 100, 1)",
+                          fontSize: 14,
+                        }}
+                      >
+                        Developer-friendly format
                       </Text>
                     </View>
                     {exporting && (
@@ -159,16 +218,37 @@ export default function ExportModal({
                 </LinearGradient>
               </TouchableOpacity>
 
+              {/* Cancel Button */}
               <TouchableOpacity
                 onPress={onClose}
-                className="w-full py-4 border border-slate-300 rounded-xl"
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.8)" }}
+                disabled={exporting}
+                style={{
+                  width: "100%",
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: "#cbd5e1",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  alignItems: "center",
+                  opacity: exporting ? 0.5 : 1,
+                }}
               >
-                <Text className="text-slate-600 text-center text-lg font-medium">
+                <Text
+                  style={{ color: "#64748b", fontSize: 16, fontWeight: "500" }}
+                >
                   Cancel
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {exporting && (
+              <View style={{ alignItems: "center", marginTop: 16 }}>
+                <Text style={{ color: "#64748b", fontSize: 14 }}>
+                  Preparing export...
+                </Text>
+              </View>
+            )}
           </View>
         </LinearGradient>
       </View>
