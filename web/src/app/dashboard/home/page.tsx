@@ -86,6 +86,44 @@ export default function DashboardHomePage() {
     }
   }, [user, loadExpenses]);
 
+  // Refresh data when page becomes visible (e.g., when navigating back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        loadExpenses();
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        loadExpenses();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [user, loadExpenses]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const subscription = expenseApi.subscribeToExpenseChanges((payload) => {
+      console.log("Home: Real-time expense change:", payload);
+      // Reload expenses when any change occurs
+      loadExpenses();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user, expenseApi, loadExpenses]);
+
   // Calculate stats
   const stats = useMemo(() => {
     const now = new Date();

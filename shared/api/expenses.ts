@@ -346,4 +346,39 @@ export class ExpenseApi {
   ): Promise<ApiResponse<Expense[]>> {
     return this.getExpenses({ startDate, endDate });
   }
+
+  // Real-time subscriptions
+  subscribeToExpenseChanges(
+    callback: (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new?: Expense;
+      old?: Expense;
+    }) => void
+  ) {
+    const channel = this.apiClient.client
+      .channel("expenses_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "expenses",
+        },
+        (payload) => {
+          console.log("Expense change detected:", payload);
+          callback({
+            eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+            new: payload.new as Expense,
+            old: payload.old as Expense,
+          });
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        this.apiClient.client.removeChannel(channel);
+      },
+    };
+  }
 }

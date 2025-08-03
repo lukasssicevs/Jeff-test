@@ -147,9 +147,20 @@ export class ExpenseApi {
 
   async getExpenses(): Promise<ApiResponse<Expense[]>> {
     try {
+      // Get the current authenticated user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return { error: "User not authenticated" };
+      }
+
       const { data, error } = await supabase
         .from("expenses")
         .select("*")
+        .eq("user_id", user.id) // Explicitly filter by user_id
         .order("date", { ascending: false });
 
       if (error) {
@@ -165,10 +176,57 @@ export class ExpenseApi {
     }
   }
 
+  // Real-time subscriptions
+  subscribeToExpenseChanges(
+    userId: string,
+    callback: (payload: {
+      eventType: "INSERT" | "UPDATE" | "DELETE";
+      new?: Expense;
+      old?: Expense;
+    }) => void
+  ) {
+    const channel = supabase
+      .channel(`expenses_changes_${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "expenses",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log("Expense change detected:", payload);
+          callback({
+            eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+            new: payload.new as Expense,
+            old: payload.old as Expense,
+          });
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      },
+    };
+  }
+
   async createExpense(
     expense: CreateExpenseRequest
   ): Promise<ApiResponse<Expense>> {
     try {
+      // Get the current authenticated user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return { error: "User not authenticated" };
+      }
+
       let photoUrl: string | undefined;
 
       // Handle photo upload if present
@@ -183,10 +241,11 @@ export class ExpenseApi {
       const { data, error } = await supabase
         .from("expenses")
         .insert({
+          user_id: user.id, // Add the user_id for RLS policy
           amount: expense.amount,
           category: expense.category,
           description: expense.description,
-          date: expense.date,
+          date: new Date(expense.date).toISOString(), // Convert to datetime format
           ...(photoUrl && { photo_url: photoUrl }),
         })
         .select()
@@ -207,7 +266,21 @@ export class ExpenseApi {
 
   async deleteExpense(id: string): Promise<ApiResponse<boolean>> {
     try {
-      const { error } = await supabase.from("expenses").delete().eq("id", id);
+      // Get the current authenticated user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return { error: "User not authenticated" };
+      }
+
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id); // Ensure user can only delete their own expenses
 
       if (error) {
         return { error: error.message };

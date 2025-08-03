@@ -101,6 +101,59 @@ export default function ExpensesPage() {
     }
   }, [user, loadExpenses]);
 
+  // Refresh data when page becomes visible (e.g., when navigating back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        loadExpenses();
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        loadExpenses();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [user, loadExpenses]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const subscription = expenseApi.subscribeToExpenseChanges((payload) => {
+      console.log("Expenses: Real-time expense change:", payload);
+
+      if (payload.eventType === "INSERT" && payload.new) {
+        // Add new expense to the list
+        setExpenses((prev) => [payload.new!, ...prev]);
+      } else if (payload.eventType === "DELETE" && payload.old) {
+        // Remove deleted expense from the list
+        setExpenses((prev) =>
+          prev.filter((expense) => expense.id !== payload.old!.id)
+        );
+      } else if (payload.eventType === "UPDATE" && payload.new) {
+        // Update existing expense in the list
+        setExpenses((prev) =>
+          prev.map((expense) =>
+            expense.id === payload.new!.id ? payload.new! : expense
+          )
+        );
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user, expenseApi]);
+
   // Filter expenses
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
@@ -160,7 +213,7 @@ export default function ExpensesPage() {
         amount: parseFloat(formData.amount),
         category: formData.category,
         description: formData.description,
-        date: formData.date,
+        date: new Date(formData.date).toISOString(),
         photo: formData.photo || undefined,
       });
 
@@ -174,7 +227,7 @@ export default function ExpensesPage() {
         });
         setPhotoPreview(null);
         setShowAddForm(false);
-        await loadExpenses();
+        // Real-time subscription will handle the update automatically
       } else {
         console.error(
           "Failed to add expense:",
@@ -219,7 +272,7 @@ export default function ExpensesPage() {
     try {
       const result = await expenseApi.deleteExpense(id);
       if (result && !result.error) {
-        await loadExpenses();
+        // Real-time subscription will handle the update automatically
       } else {
         console.error(
           "Failed to delete expense:",
