@@ -38,7 +38,7 @@ export default function SignupForm() {
         setNeedsVerification(true);
         setError(""); // Clear any previous errors
       } else {
-        router.push("/dashboard");
+        router.push("/dashboard/home");
       }
     } else {
       setError(result.error || "Sign up failed");

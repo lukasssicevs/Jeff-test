@@ -23,15 +23,15 @@ export default function DashboardNavbar() {
 
   const getLinkClassName = (route: string) => {
     const baseClasses =
-      "px-3 py-2 rounded-md text-sm font-medium transition-colors";
+      "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
     if (isActiveRoute(route)) {
-      return `${baseClasses} bg-blue-100 text-blue-700`;
+      return `${baseClasses} bg-blue-100 text-blue-700 shadow-sm border border-blue-200`;
     }
-    return `${baseClasses} text-gray-600 hover:text-gray-900 hover:bg-gray-50`;
+    return `${baseClasses} text-slate-600 hover:text-slate-900 hover:bg-white/60 hover:shadow-sm`;
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-slate-50 to-blue-50 backdrop-blur-md shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-8">
@@ -52,7 +52,7 @@ export default function DashboardNavbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-slate-700 font-medium">
               Welcome, {user?.email}
             </span>
             <button

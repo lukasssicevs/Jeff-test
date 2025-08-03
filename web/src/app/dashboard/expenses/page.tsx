@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../../../lib/auth-context";
 import {
   ExpenseApi,
@@ -14,12 +14,43 @@ import ExpenseFilters, {
 } from "../../../components/expenses/ExpenseFilters";
 import ExportModal from "../../../components/expenses/ExportModal";
 
+// HeroUI Imports
+import { Card, CardBody } from "@heroui/card";
+import { Input } from "@heroui/input";
+import { NumberInput } from "@heroui/react";
+import { Button } from "@heroui/button";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@heroui/table";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/modal";
+import { Select, SelectItem } from "@heroui/select";
+import { Chip } from "@heroui/chip";
+import { Spinner } from "@heroui/spinner";
+
+import { DatePicker } from "@heroui/date-picker";
+import { parseDate } from "@internationalized/date";
+import { IoDownload, IoAdd, IoClose, IoTrash } from "react-icons/io5";
+import { HiRefresh } from "react-icons/hi";
+import Image from "next/image";
+
 export default function ExpensesPage() {
   const { user } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [stats, setStats] = useState({
     totalAmount: 0,
@@ -35,8 +66,11 @@ export default function ExpensesPage() {
   });
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [categorySelection, setCategorySelection] = useState<Set<string>>(
+    new Set([ExpenseCategory.OTHER])
+  );
 
-  const expenseApi = new ExpenseApi(apiClient);
+  const expenseApi = useMemo(() => new ExpenseApi(apiClient), []);
 
   // Filter expenses based on current filters
   const filteredExpenses = useMemo(() => {
@@ -101,7 +135,7 @@ export default function ExpensesPage() {
   }, [filteredExpenses]);
 
   // Load expenses
-  const loadExpenses = async () => {
+  const loadExpenses = useCallback(async () => {
     setLoading(true);
     try {
       const result = await expenseApi.getExpenses({
@@ -127,11 +161,13 @@ export default function ExpensesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [expenseApi]);
 
   // Set up real-time subscription
   useEffect(() => {
-    loadExpenses();
+    if (user) {
+      loadExpenses();
+    }
 
     // Only set up subscription if user is available
     if (!user?.id) return;
@@ -163,14 +199,14 @@ export default function ExpensesPage() {
       console.log("Unsubscribing from real-time updates");
       subscription.unsubscribe();
     };
-  }, [user?.id]);
+  }, [user?.id, user, loadExpenses]);
 
   // Handle photo selection
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate photo
-      const { PhotoUploader } = require("shared");
+      const { PhotoUploader } = await import("shared");
       const validation = PhotoUploader.validatePhoto(file);
 
       if (!validation.valid) {
@@ -237,11 +273,7 @@ export default function ExpensesPage() {
   };
 
   // Handle delete expense
-  const handleDeleteExpense = async (id: string, description: string) => {
-    if (!confirm(`Are you sure you want to delete "${description}"?`)) {
-      return;
-    }
-
+  const handleDeleteExpense = async (id: string) => {
     try {
       const result = await expenseApi.deleteExpense(id);
 
@@ -298,14 +330,14 @@ export default function ExpensesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
@@ -313,9 +345,9 @@ export default function ExpensesPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-lg">
+            <CardBody className="flex flex-row items-center p-6">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">💰</span>
               </div>
@@ -327,11 +359,11 @@ export default function ExpensesPage() {
                   {formatCurrency(stats.totalAmount)}
                 </p>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+          <Card className="shadow-lg">
+            <CardBody className="flex flex-row items-center p-6">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">📊</span>
               </div>
@@ -343,11 +375,11 @@ export default function ExpensesPage() {
                   {stats.totalCount}
                 </p>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+          <Card className="shadow-lg">
+            <CardBody className="flex flex-row items-center p-6">
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">🔍</span>
               </div>
@@ -359,11 +391,11 @@ export default function ExpensesPage() {
                   {formatCurrency(filteredStats.totalAmount)}
                 </p>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+          <Card className="shadow-lg">
+            <CardBody className="flex flex-row items-center p-6">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">📈</span>
               </div>
@@ -375,8 +407,8 @@ export default function ExpensesPage() {
                   {filteredStats.totalCount}
                 </p>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -386,125 +418,105 @@ export default function ExpensesPage() {
           onClearFilters={() => setFilters({})}
         />
 
-        {/* Action Bar */}
-        <div className="bg-white rounded-lg shadow mb-6 p-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Recent Expenses
-            </h2>
-            <div className="flex space-x-3">
-              <button
-                onClick={loadExpenses}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Refresh"}
-              </button>
-              <button
-                onClick={() => setShowExportModal(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                disabled={filteredExpenses.length === 0}
-              >
-                Export File
-              </button>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Add Expense
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Add Expense Form Modal */}
-        {showAddForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Add New Expense
-              </h3>
+        <Modal
+          isOpen={showAddForm}
+          onClose={() => setShowAddForm(false)}
+          size="lg"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            <ModalHeader className="flex flex-col gap-1">
+              Add New Expense
+            </ModalHeader>
+            <ModalBody className="px-6 py-4">
+              <form
+                id="expense-form"
+                onSubmit={handleAddExpense}
+                className="space-y-6"
+              >
+                <NumberInput
+                  label="Amount"
+                  placeholder="0.00"
+                  value={formData.amount ? parseFloat(formData.amount) : 0}
+                  onValueChange={(value: number) =>
+                    setFormData({
+                      ...formData,
+                      amount: value?.toString() || "",
+                    })
+                  }
+                  variant="bordered"
+                  isRequired
+                  step={0.01}
+                  minValue={0}
+                  maxValue={999999.99}
+                  formatOptions={{
+                    style: "currency",
+                    currency: "USD",
+                  }}
+                  description="Enter the expense amount in USD"
+                  startContent={
+                    <div className="pointer-events-none flex items-center">
+                      <span className="text-default-400 text-small">$</span>
+                    </div>
+                  }
+                />
 
-              <form onSubmit={handleAddExpense} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Amount
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.amount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, amount: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) =>
+                <Select
+                  label="Category"
+                  placeholder="Select a category"
+                  selectedKeys={categorySelection}
+                  onSelectionChange={(keys) => {
+                    setCategorySelection(keys as Set<string>);
+                    const selectedKey = Array.from(keys)[0];
+                    if (selectedKey) {
                       setFormData({
                         ...formData,
-                        category: e.target.value as ExpenseCategoryType,
-                      })
+                        category: selectedKey as ExpenseCategoryType,
+                      });
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Object.entries(ExpenseCategory).map(([key, value]) => (
-                      <option key={key} value={value}>
-                        {getCategoryEmoji(value)} {formatCategory(value)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  }}
+                  variant="bordered"
+                  isRequired
+                >
+                  {Object.entries(ExpenseCategory).map(([, value]) => (
+                    <SelectItem key={value}>
+                      {getCategoryEmoji(value)} {formatCategory(value)}
+                    </SelectItem>
+                  ))}
+                </Select>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="What did you spend on?"
-                    required
-                  />
-                </div>
+                <Input
+                  type="text"
+                  label="Description"
+                  placeholder="What did you spend on?"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  variant="bordered"
+                  isRequired
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                <DatePicker
+                  label="Date"
+                  value={formData.date ? parseDate(formData.date) : null}
+                  onChange={(date) => {
+                    const dateString = date
+                      ? date.toString()
+                      : new Date().toISOString().split("T")[0];
+                    setFormData({ ...formData, date: dateString });
+                  }}
+                  variant="bordered"
+                  isRequired
+                  showMonthAndYearPickers
+                />
 
-                <div>
-                  <label
-                    htmlFor="photo"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
                     Receipt Photo (Optional)
                   </label>
-                  <div className="mt-1">
+                  <div>
                     <input
                       type="file"
                       id="photo-input"
@@ -544,15 +556,27 @@ export default function ExpensesPage() {
                       </label>
                     ) : (
                       <div className="relative">
-                        <img
+                        <Image
                           src={photoPreview}
                           alt="Receipt preview"
+                          width={400}
+                          height={128}
                           className="w-full h-32 object-cover rounded-lg border border-gray-300"
+                          style={{
+                            width: "100%",
+                            height: "8rem",
+                            objectFit: "cover",
+                          }}
+                          unoptimized
                         />
-                        <button
+                        <Button
                           type="button"
                           onClick={handlePhotoRemove}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          color="danger"
+                          variant="solid"
+                          size="sm"
+                          isIconOnly
+                          className="absolute top-2 right-2"
                         >
                           <svg
                             className="h-4 w-4"
@@ -567,128 +591,247 @@ export default function ExpensesPage() {
                               d="M6 18L18 6M6 6l12 12"
                             />
                           </svg>
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
                 </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddForm(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Add Expense
-                  </button>
-                </div>
               </form>
-            </div>
-          </div>
-        )}
-
-        {/* Expenses Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {filteredExpenses.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">💸</span>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {expenses.length === 0
-                  ? "No expenses yet"
-                  : "No expenses match your filters"}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {expenses.length === 0
-                  ? "Start tracking your expenses by adding your first one."
-                  : "Try adjusting your filters or clear them to see all expenses."}
-              </p>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            </ModalBody>
+            <ModalFooter className="px-6 py-4 gap-3">
+              <Button
+                color="danger"
+                variant="light"
+                onPress={() => setShowAddForm(false)}
               >
-                Add Your First Expense
-              </button>
+                Cancel
+              </Button>
+              <Button color="primary" type="submit" form="expense-form">
+                Add Expense
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Expenses Table with Action Bar */}
+        <Card className="shadow-lg">
+          {/* Action Bar Header */}
+          <CardBody className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Recent Expenses
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  onClick={loadExpenses}
+                  color="default"
+                  variant="ghost"
+                  size="sm"
+                  isDisabled={loading}
+                  isLoading={loading}
+                  startContent={!loading && <HiRefresh className="w-4 h-4" />}
+                  isIconOnly={!loading}
+                  title="Refresh expenses"
+                >
+                  {loading && "Loading..."}
+                </Button>
+                <Button
+                  onClick={() => setShowExportModal(true)}
+                  color="success"
+                  variant="ghost"
+                  size="sm"
+                  isDisabled={filteredExpenses.length === 0}
+                  startContent={<IoDownload className="w-4 h-4" />}
+                  isIconOnly
+                  title="Export expenses"
+                />
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  color="primary"
+                  variant="ghost"
+                  size="sm"
+                  startContent={<IoAdd className="w-4 h-4" />}
+                  isIconOnly
+                  title="Add new expense"
+                />
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          </CardBody>
+          <CardBody className="p-0">
+            {filteredExpenses.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl">💸</span>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  {expenses.length === 0
+                    ? "No expenses yet"
+                    : "No expenses match your filters"}
+                </h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  {expenses.length === 0
+                    ? "Start tracking your expenses by adding your first one."
+                    : "Try adjusting your filters or clear them to see all expenses."}
+                </p>
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  color="primary"
+                  variant="solid"
+                  size="lg"
+                >
+                  Add Your First Expense
+                </Button>
+              </div>
+            ) : (
+              <div className="p-0">
+                <Table
+                  aria-label="Expenses table"
+                  className="min-h-[400px]"
+                  removeWrapper
+                >
+                  <TableHeader>
+                    <TableColumn
+                      key="date"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4"
+                    >
                       Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </TableColumn>
+                    <TableColumn
+                      key="description"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4"
+                    >
                       Description
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </TableColumn>
+                    <TableColumn
+                      key="category"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4"
+                    >
                       Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    </TableColumn>
+                    <TableColumn
+                      key="amount"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4"
+                    >
                       Amount
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredExpenses.map((expense) => (
-                    <tr key={expense.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(expense.date)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        <div className="flex items-center">
-                          {expense.photo_url && (
-                            <img
-                              src={expense.photo_url}
-                              alt="Receipt"
-                              className="w-8 h-8 object-cover rounded mr-3 cursor-pointer"
-                              onClick={() =>
-                                window.open(expense.photo_url, "_blank")
-                              }
-                              title="Click to view full image"
-                            />
-                          )}
-                          <span>{expense.description}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className="inline-flex items-center">
-                          {getCategoryEmoji(expense.category)}
-                          <span className="ml-2">
-                            {formatCategory(expense.category)}
+                    </TableColumn>
+                    <TableColumn
+                      key="image"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4 text-center"
+                    >
+                      Image
+                    </TableColumn>
+                    <TableColumn
+                      key="actions"
+                      className="bg-gray-50 text-gray-700 font-semibold px-6 py-4"
+                    >
+                      Delete
+                    </TableColumn>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredExpenses.map((expense) => (
+                      <TableRow
+                        key={expense.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell className="px-6 py-4">
+                          <span className="text-sm text-gray-900">
+                            {formatDate(expense.date)}
                           </span>
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {formatCurrency(expense.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() =>
-                            handleDeleteExpense(expense.id, expense.description)
-                          }
-                          className="text-red-600 hover:text-red-900 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <span className="text-sm text-gray-900 truncate max-w-xs">
+                            {expense.description}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Chip
+                            variant="flat"
+                            color="primary"
+                            size="sm"
+                            startContent={
+                              <span>{getCategoryEmoji(expense.category)}</span>
+                            }
+                          >
+                            {formatCategory(expense.category)}
+                          </Chip>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <span className="font-semibold text-gray-900">
+                            {formatCurrency(expense.amount)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center justify-center w-full">
+                            {expense.photo_url ? (
+                              <div
+                                className="cursor-pointer"
+                                onClick={() =>
+                                  setSelectedImage(expense.photo_url!)
+                                }
+                                title="Click to view full image"
+                              >
+                                <Image
+                                  src={expense.photo_url}
+                                  alt="Receipt"
+                                  width={48}
+                                  height={48}
+                                  className="w-12 h-12 object-cover rounded-lg border-2 border-gray-200 hover:scale-105 transition-transform shadow-sm block"
+                                  onLoad={() =>
+                                    console.log(
+                                      "Image loaded:",
+                                      expense.photo_url
+                                    )
+                                  }
+                                  onError={(e) =>
+                                    console.log(
+                                      "Image error:",
+                                      expense.photo_url,
+                                      e
+                                    )
+                                  }
+                                  unoptimized
+                                  priority={false}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                                <svg
+                                  className="w-6 h-6 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Button
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            color="danger"
+                            variant="light"
+                            size="sm"
+                            isIconOnly
+                            title="Delete expense"
+                          >
+                            <IoTrash className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardBody>
+        </Card>
 
         {/* Export Modal */}
         <ExportModal
@@ -696,6 +839,68 @@ export default function ExpensesPage() {
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
         />
+
+        {/* Image Modal */}
+        <Modal
+          isOpen={!!selectedImage}
+          onClose={() => setSelectedImage(null)}
+          size="2xl"
+          scrollBehavior="inside"
+          hideCloseButton
+        >
+          <ModalContent>
+            <ModalHeader className="flex justify-between items-center">
+              <span>Expense Receipt</span>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                onPress={() => setSelectedImage(null)}
+              >
+                <IoClose className="w-4 h-4" />
+              </Button>
+            </ModalHeader>
+            <ModalBody className="px-6 py-4">
+              {selectedImage && (
+                <div className="flex justify-center">
+                  <Image
+                    src={selectedImage}
+                    alt="Expense Receipt"
+                    width={800}
+                    height={600}
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                    style={{
+                      width: "auto",
+                      height: "auto",
+                      maxWidth: "100%",
+                      maxHeight: "70vh",
+                    }}
+                    unoptimized
+                  />
+                </div>
+              )}
+            </ModalBody>
+            <ModalFooter className="px-6 py-4">
+              <Button
+                color="primary"
+                variant="light"
+                onPress={() =>
+                  selectedImage && window.open(selectedImage, "_blank")
+                }
+                startContent={<IoDownload className="w-4 h-4" />}
+              >
+                Open Original
+              </Button>
+              <Button
+                color="danger"
+                variant="light"
+                onPress={() => setSelectedImage(null)}
+              >
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </div>
     </div>
   );
