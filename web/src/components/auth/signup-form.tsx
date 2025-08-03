@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../lib/auth-context";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Alert } from "@heroui/alert";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
@@ -44,166 +48,132 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div className="bg-white rounded-xl shadow-xl p-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-2xl">
+          <CardHeader className="flex flex-col items-center pb-0 pt-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Create account
-            </h2>
+            </h1>
             <p className="text-gray-600">Sign up for a new account</p>
-          </div>
+          </CardHeader>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <CardBody className="px-8 py-6">
             {error && !needsVerification && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
-              </div>
+              <Alert
+                color="danger"
+                variant="flat"
+                description={error}
+                className="mb-6"
+              />
             )}
 
             {needsVerification && (
-              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-blue-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+              <Alert
+                color="success"
+                variant="flat"
+                title="Account created successfully!"
+                description={
+                  <div className="mt-2">
+                    <p className="text-sm">
+                      Please check your email <strong>{email}</strong> and click
+                      the verification link to complete your account setup.
+                    </p>
                   </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-blue-800">
-                      Account created successfully!
-                    </h3>
-                    <div className="mt-2 text-sm text-blue-700">
-                      <p>
-                        Please check your email <strong>{email}</strong> and
-                        click the verification link to complete your account
-                        setup.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                }
+                className="mb-6"
+              />
             )}
 
-            {!needsVerification && (
-              <>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your email"
-                  />
-                </div>
+            {!needsVerification ? (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <Input
+                  type="email"
+                  label="Email address"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  isRequired
+                  variant="bordered"
+                  color="primary"
+                  size="lg"
+                />
 
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your password"
-                    minLength={8}
-                  />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Password must be at least 8 characters long
-                  </p>
-                </div>
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  isRequired
+                  variant="bordered"
+                  color="primary"
+                  size="lg"
+                  description="Password must be at least 8 characters long"
+                />
 
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Confirm your password"
-                    minLength={8}
-                  />
-                </div>
+                <Input
+                  type="password"
+                  label="Confirm Password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  isRequired
+                  variant="bordered"
+                  color="primary"
+                  size="lg"
+                />
 
-                <button
+                <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  color="primary"
+                  size="lg"
+                  className="w-full font-semibold"
+                  isLoading={isLoading}
+                  isDisabled={isLoading}
                 >
                   {isLoading ? "Creating account..." : "Sign up"}
-                </button>
+                </Button>
 
-                <div className="text-center">
+                <div className="text-center pt-4">
                   <span className="text-gray-600">
                     Already have an account?{" "}
                   </span>
                   <Link
                     href="/login"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                   >
                     Sign in
                   </Link>
                 </div>
-              </>
-            )}
-
-            {needsVerification && (
+              </form>
+            ) : (
               <div className="space-y-4">
-                <Link
+                <Button
+                  as={Link}
                   href="/login"
-                  className="w-full flex justify-center py-3 px-4 border border-blue-600 rounded-lg shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  color="primary"
+                  variant="bordered"
+                  size="lg"
+                  className="w-full font-semibold"
                 >
                   Go to Sign In
-                </Link>
+                </Button>
+
                 <div className="text-center text-sm text-gray-600">
                   Didn&apos;t receive an email? Check your spam folder or{" "}
                   <button
                     type="button"
                     onClick={() => setNeedsVerification(false)}
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                   >
                     try again
                   </button>
                 </div>
               </div>
             )}
-          </form>
-        </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );
