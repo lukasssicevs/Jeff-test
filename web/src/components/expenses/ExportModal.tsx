@@ -27,7 +27,7 @@ export default function ExportModal({
   isOpen,
   onClose,
 }: ExportModalProps) {
-  const [format, setFormat] = useState<"csv" | "json" | "summary">("csv");
+  const [format, setFormat] = useState<"csv" | "json">("csv");
   const [includeHeaders, setIncludeHeaders] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -39,13 +39,15 @@ export default function ExportModal({
         includeHeaders,
       };
 
-      const blob = await ExpenseExporter.exportToFile(expenses, options);
+      const content = ExpenseExporter.export(expenses, options);
+      const mimeType = ExpenseExporter.getMimeType(format);
+      const blob = new Blob([content], { type: mimeType });
 
       // Create download link
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = ExpenseExporter.generateFilename(format);
+      a.download = ExpenseExporter.getFileName(format);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -66,8 +68,6 @@ export default function ExportModal({
         return "Spreadsheet format (Excel, Google Sheets)";
       case "json":
         return "Structured data format for developers";
-      case "summary":
-        return "Human-readable text summary";
       default:
         return "";
     }
@@ -79,8 +79,6 @@ export default function ExportModal({
         return "📊";
       case "json":
         return "🔧";
-      case "summary":
-        return "📄";
       default:
         return "📁";
     }
@@ -149,12 +147,10 @@ export default function ExportModal({
             </h4>
             <RadioGroup
               value={format}
-              onValueChange={(value) =>
-                setFormat(value as "csv" | "json" | "summary")
-              }
+              onValueChange={(value) => setFormat(value as "csv" | "json")}
               className="gap-3"
             >
-              {(["csv", "json", "summary"] as const).map((fmt) => (
+              {(["csv", "json"] as const).map((fmt) => (
                 <Radio key={fmt} value={fmt} className="w-full">
                   <div className="flex items-start gap-3 w-full">
                     <span className="text-lg">{getFormatIcon(fmt)}</span>

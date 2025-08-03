@@ -49,7 +49,11 @@ export default function SignupScreen({
 
     if (result.success) {
       if (result.needsVerification) {
-        setNeedsVerification(true);
+        Alert.alert(
+          "Check Your Email",
+          `Account created successfully! Please check your email ${email} and click the verification link to complete your account setup.`,
+          [{ text: "OK", onPress: onNavigateToLogin }]
+        );
       } else {
         onSignupSuccess();
       }

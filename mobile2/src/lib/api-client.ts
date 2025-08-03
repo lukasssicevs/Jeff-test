@@ -98,16 +98,29 @@ export class AuthApi {
     confirmPassword: string
   ): Promise<AuthResult> {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+        },
+        {
+          emailRedirectTo: "http://localhost:3000/auth/callback",
+        }
+      );
 
       if (error) {
         return { success: false, error: error.message };
       }
 
-      // Check if email confirmation is required
+      // If user exists but no session, it means email verification is required
+      if (data.user && !data.session) {
+        return {
+          success: true,
+          needsVerification: true,
+        };
+      }
+
+      // If user exists but email not confirmed, also require verification
       if (data.user && !data.user.email_confirmed_at) {
         return {
           success: true,

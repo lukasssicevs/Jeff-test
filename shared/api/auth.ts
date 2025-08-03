@@ -17,6 +17,9 @@ export class AuthApi {
         {
           email: data.email,
           password: data.password,
+        },
+        {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       );
 

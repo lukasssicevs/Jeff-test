@@ -394,9 +394,9 @@ export default function DashboardHomePage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-300 flex items-center justify-center text-gray-500">
+                <div className="h-32 flex items-center justify-center text-gray-500">
                   <div className="text-center">
-                    <span className="text-4xl mb-2 block">📊</span>
+                    <span className="text-2xl mb-2 block">📊</span>
                     <p className="text-slate-600">No expense data yet</p>
                   </div>
                 </div>
@@ -448,9 +448,9 @@ export default function DashboardHomePage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-300 flex items-center justify-center text-gray-500">
+                <div className="h-32 flex items-center justify-center text-gray-500">
                   <div className="text-center">
-                    <span className="text-4xl mb-2 block">📈</span>
+                    <span className="text-2xl mb-2 block">📈</span>
                     <p className="text-slate-600">No expense data yet</p>
                   </div>
                 </div>
