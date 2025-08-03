@@ -1,20 +1,24 @@
 {
-  "name": "JEFF-TEST",
+  "name": "jeff-test-monorepo",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "build": "npm run build --workspaces --if-present",
+    "build:web": "npm run build --workspace=web",
+    "build:mobile": "npm run build --workspace=mobile",
+    "build:shared": "npm run build --workspace=shared",
+    "dev": "npm run dev --workspaces --if-present",
     "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:mobile\" --names \"WEB,MOBILE\" --prefix-colors \"blue,magenta\"",
-    "dev:web": "cd apps/web && npm run dev",
-    "dev:mobile": "cd apps/mobile && npm run ios",
-    "lint": "turbo run lint",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:mobile": "npm run start --workspace=mobile",
+    "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "npm run check-types --workspaces --if-present",
+    "clean": "rm -rf node_modules web/node_modules mobile/node_modules shared/node_modules",
+    "install:all": "npm install"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
     "prettier": "^3.6.2",
-    "turbo": "^2.5.5",
     "typescript": "5.8.3"
   },
   "engines": {
@@ -22,7 +26,8 @@
   },
   "packageManager": "npm@10.8.2",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "web",
+    "mobile",
+    "shared"
   ]
 }
