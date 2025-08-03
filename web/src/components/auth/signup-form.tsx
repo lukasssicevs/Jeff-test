@@ -86,7 +86,7 @@ export default function SignupForm() {
             )}
 
             {!needsVerification ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 <Input
                   type="email"
                   label="Email address"

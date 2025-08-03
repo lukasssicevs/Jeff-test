@@ -144,6 +144,7 @@ export default function ExpenseFilters({
                 value={filters.search || ""}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 variant="bordered"
+                color="primary"
                 isClearable
                 onClear={() => handleFilterChange("search", "")}
                 startContent={
@@ -183,6 +184,7 @@ export default function ExpenseFilters({
                     handleFilterChange("category", selected || "");
                   }}
                   variant="bordered"
+                  color="primary"
                 >
                   {Object.entries(ExpenseCategory).map(([, value]) => (
                     <SelectItem key={value}>
@@ -202,6 +204,7 @@ export default function ExpenseFilters({
                     handleFilterChange("startDate", dateString);
                   }}
                   variant="bordered"
+                  color="primary"
                   showMonthAndYearPickers
                 />
 
@@ -214,6 +217,7 @@ export default function ExpenseFilters({
                     handleFilterChange("endDate", dateString);
                   }}
                   variant="bordered"
+                  color="primary"
                   showMonthAndYearPickers
                 />
               </div>
@@ -236,6 +240,7 @@ export default function ExpenseFilters({
                     handleFilterChange("minAmount", value || undefined)
                   }
                   variant="bordered"
+                  color="primary"
                   step={0.1}
                   minValue={0}
                   maxValue={999999.99}
@@ -256,6 +261,7 @@ export default function ExpenseFilters({
                     handleFilterChange("maxAmount", value || undefined)
                   }
                   variant="bordered"
+                  color="primary"
                   step={0.1}
                   minValue={0}
                   maxValue={999999.99}

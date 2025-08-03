@@ -234,27 +234,27 @@ export default function DashboardHomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
             Dashboard Overview
           </h1>
           <p className="text-slate-600 mt-2">Welcome back, {user?.email}</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-2xl">💰</span>
+            <CardBody className="flex flex-row items-center p-4 sm:p-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-lg sm:text-2xl">💰</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">
                   Spent This Month
                 </p>
-                <p className="text-2xl font-semibold text-slate-800">
+                <p className="text-lg sm:text-2xl font-semibold text-slate-800">
                   {formatCurrency(stats.thisMonthAmount)}
                 </p>
               </div>
@@ -262,15 +262,15 @@ export default function DashboardHomePage() {
           </Card>
 
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-2xl">📊</span>
+            <CardBody className="flex flex-row items-center p-4 sm:p-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-lg sm:text-2xl">📊</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">
                   Total Entries
                 </p>
-                <p className="text-2xl font-semibold text-slate-800">
+                <p className="text-lg sm:text-2xl font-semibold text-slate-800">
                   {stats.totalEntries}
                 </p>
               </div>
@@ -278,13 +278,15 @@ export default function DashboardHomePage() {
           </Card>
 
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-2xl">📈</span>
+            <CardBody className="flex flex-row items-center p-4 sm:p-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-lg sm:text-2xl">📈</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Daily Avg</p>
-                <p className="text-2xl font-semibold text-slate-800">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">
+                  Daily Avg
+                </p>
+                <p className="text-lg sm:text-2xl font-semibold text-slate-800">
                   {formatCurrency(stats.dailyAverage)}
                 </p>
               </div>
@@ -292,17 +294,17 @@ export default function DashboardHomePage() {
           </Card>
 
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-2xl">
+            <CardBody className="flex flex-row items-center p-4 sm:p-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-lg sm:text-2xl">
                   {stats.mostPopularCategory?.emoji || "🎯"}
                 </span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-slate-600">
                   Top Category
                 </p>
-                <p className="text-2xl font-semibold text-slate-800">
+                <p className="text-lg sm:text-2xl font-semibold text-slate-800">
                   {stats.mostPopularCategory?.name || "None"}
                 </p>
                 {stats.mostPopularCategory && (
@@ -316,15 +318,15 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Spending by Category */}
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <CardBody className="p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4">
                 Spending by Category
               </h3>
               {categoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie
                       data={categoryData}
@@ -366,12 +368,12 @@ export default function DashboardHomePage() {
 
           {/* Daily Spending (Past Month) */}
           <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
-            <CardBody className="p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <CardBody className="p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4">
                 Daily Spending (Last 3 Months)
               </h3>
               {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={dailyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis
@@ -420,19 +422,19 @@ export default function DashboardHomePage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Link href="/dashboard/expenses">
             <Card className="shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm border border-white/20 hover:bg-white/90">
-              <CardBody className="p-6">
+              <CardBody className="p-4 sm:p-6">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-2xl">💰</span>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <span className="text-lg sm:text-2xl">💰</span>
                   </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-slate-800">
+                  <div className="ml-3 sm:ml-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-800">
                       Manage Expenses
                     </h3>
-                    <p className="text-slate-600">
+                    <p className="text-sm text-slate-600">
                       View, add, and track your expenses
                     </p>
                   </div>
@@ -451,8 +453,8 @@ export default function DashboardHomePage() {
           >
             <CardBody className="p-6">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📊</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <span className="text-lg sm:text-2xl">📊</span>
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-slate-800">

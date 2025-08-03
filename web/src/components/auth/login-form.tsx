@@ -38,15 +38,15 @@ export default function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl">
-          <CardHeader className="flex flex-col items-center pb-0 pt-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <CardHeader className="flex flex-col items-center pb-0 pt-6 sm:pt-8 px-4 sm:px-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
               Welcome back
             </h1>
-            <p className="text-gray-600">Sign in to your account</p>
+            <p className="text-gray-600 text-center">Sign in to your account</p>
           </CardHeader>
 
-          <CardBody className="px-8 py-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardBody className="px-4 sm:px-8 py-4 sm:py-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {error && (
                 <Alert color="danger" variant="flat" description={error} />
               )}
