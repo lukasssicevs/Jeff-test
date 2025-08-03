@@ -82,7 +82,7 @@ export default function ExpenseFilters({
   };
 
   return (
-    <Card className="shadow-lg mb-8">
+    <Card className="shadow-lg mb-8 bg-white/80 backdrop-blur-sm border border-white/20">
       {/* Filter Toggle Header */}
       <CardHeader className="px-6 py-4">
         <div className="flex justify-between items-center w-full">

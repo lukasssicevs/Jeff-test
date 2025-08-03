@@ -79,9 +79,8 @@ export default function LoginForm() {
 
               <Button
                 type="submit"
-                color="primary"
                 size="lg"
-                className="w-full font-semibold"
+                className="w-full font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
                 isLoading={isLoading}
                 isDisabled={isLoading}
               >
@@ -89,12 +88,12 @@ export default function LoginForm() {
               </Button>
 
               <div className="text-center pt-4">
-                <span className="text-gray-600">
+                <span className="text-slate-600">
                   Don&apos;t have an account?{" "}
                 </span>
                 <Link
                   href="/signup"
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                 >
                   Sign up
                 </Link>

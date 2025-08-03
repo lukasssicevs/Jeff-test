@@ -126,9 +126,8 @@ export default function SignupForm() {
 
                 <Button
                   type="submit"
-                  color="primary"
                   size="lg"
-                  className="w-full font-semibold"
+                  className="w-full font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg"
                   isLoading={isLoading}
                   isDisabled={isLoading}
                 >
@@ -136,12 +135,12 @@ export default function SignupForm() {
                 </Button>
 
                 <div className="text-center pt-4">
-                  <span className="text-gray-600">
+                  <span className="text-slate-600">
                     Already have an account?{" "}
                   </span>
                   <Link
                     href="/login"
-                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                    className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                   >
                     Sign in
                   </Link>

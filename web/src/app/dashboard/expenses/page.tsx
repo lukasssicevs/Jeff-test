@@ -52,10 +52,6 @@ export default function ExpensesPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
-  const [stats, setStats] = useState({
-    totalAmount: 0,
-    totalCount: 0,
-  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -145,16 +141,6 @@ export default function ExpensesPage() {
 
       if (result.data) {
         setExpenses(result.data);
-
-        // Calculate basic stats for all expenses (unfiltered)
-        const totalAmount = result.data.reduce(
-          (sum, expense) => sum + expense.amount,
-          0
-        );
-        setStats({
-          totalAmount,
-          totalCount: result.data.length,
-        });
       }
     } catch (error) {
       console.error("Error loading expenses:", error);
@@ -336,74 +322,42 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-gray-600 mt-2">Track and manage your expenses</p>
+          <h1 className="text-3xl font-bold text-slate-800">Expenses</h1>
+          <p className="text-slate-600 mt-2">Track and manage your expenses</p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-lg">
+        {/* Filter Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
             <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  Total Spent (All)
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {formatCurrency(stats.totalAmount)}
-                </p>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📊</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  All Expenses
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.totalCount}
-                </p>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-2xl">🔍</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-slate-600">
                   Filtered Amount
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-2xl font-semibold text-slate-800">
                   {formatCurrency(filteredStats.totalAmount)}
                 </p>
               </div>
             </CardBody>
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
             <CardBody className="flex flex-row items-center p-6">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-2xl">📈</span>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-slate-600">
                   Filtered Count
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-2xl font-semibold text-slate-800">
                   {filteredStats.totalCount}
                 </p>
               </div>
@@ -527,7 +481,7 @@ export default function ExpensesPage() {
                     {!photoPreview ? (
                       <label
                         htmlFor="photo-input"
-                        className="cursor-pointer flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                        className="cursor-pointer flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
                       >
                         <div className="text-center">
                           <svg
@@ -572,11 +526,10 @@ export default function ExpensesPage() {
                         <Button
                           type="button"
                           onClick={handlePhotoRemove}
-                          color="danger"
                           variant="solid"
                           size="sm"
                           isIconOnly
-                          className="absolute top-2 right-2"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
                         >
                           <svg
                             className="h-4 w-4"
@@ -600,13 +553,16 @@ export default function ExpensesPage() {
             </ModalBody>
             <ModalFooter className="px-6 py-4 gap-3">
               <Button
-                color="danger"
-                variant="light"
+                className="bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white shadow-lg"
                 onPress={() => setShowAddForm(false)}
               >
                 Cancel
               </Button>
-              <Button color="primary" type="submit" form="expense-form">
+              <Button
+                type="submit"
+                form="expense-form"
+                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
+              >
                 Add Expense
               </Button>
             </ModalFooter>
@@ -614,7 +570,7 @@ export default function ExpensesPage() {
         </Modal>
 
         {/* Expenses Table with Action Bar */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-white/80 backdrop-blur-sm border border-white/20">
           {/* Action Bar Header */}
           <CardBody className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
@@ -637,7 +593,7 @@ export default function ExpensesPage() {
                 </Button>
                 <Button
                   onClick={() => setShowExportModal(true)}
-                  color="success"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg"
                   variant="ghost"
                   size="sm"
                   isDisabled={filteredExpenses.length === 0}
@@ -647,7 +603,7 @@ export default function ExpensesPage() {
                 />
                 <Button
                   onClick={() => setShowAddForm(true)}
-                  color="primary"
+                  className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
                   variant="ghost"
                   size="sm"
                   startContent={<IoAdd className="w-4 h-4" />}
@@ -675,7 +631,7 @@ export default function ExpensesPage() {
                 </p>
                 <Button
                   onClick={() => setShowAddForm(true)}
-                  color="primary"
+                  className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
                   variant="solid"
                   size="lg"
                 >
@@ -746,7 +702,7 @@ export default function ExpensesPage() {
                         <TableCell className="px-6 py-4">
                           <Chip
                             variant="flat"
-                            color="primary"
+                            className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
                             size="sm"
                             startContent={
                               <span>{getCategoryEmoji(expense.category)}</span>
@@ -815,7 +771,7 @@ export default function ExpensesPage() {
                         <TableCell className="px-6 py-4">
                           <Button
                             onClick={() => handleDeleteExpense(expense.id)}
-                            color="danger"
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg"
                             variant="light"
                             size="sm"
                             isIconOnly
@@ -882,7 +838,7 @@ export default function ExpensesPage() {
             </ModalBody>
             <ModalFooter className="px-6 py-4">
               <Button
-                color="primary"
+                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
                 variant="light"
                 onPress={() =>
                   selectedImage && window.open(selectedImage, "_blank")
@@ -892,7 +848,7 @@ export default function ExpensesPage() {
                 Open Original
               </Button>
               <Button
-                color="danger"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg"
                 variant="light"
                 onPress={() => setSelectedImage(null)}
               >
