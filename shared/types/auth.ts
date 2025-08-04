@@ -1,30 +1,18 @@
-import { z } from "zod";
+// Auth data types
+export interface SignUpData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-// Auth schemas
-export const SignUpSchema = z
-  .object({
-    email: z.string().email(),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+export interface SignInData {
+  email: string;
+  password: string;
+}
 
-export const SignInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1, "Password is required"),
-});
-
-export const ResetPasswordSchema = z.object({
-  email: z.string().email(),
-});
-
-// Auth types
-export type SignUpData = z.infer<typeof SignUpSchema>;
-export type SignInData = z.infer<typeof SignInSchema>;
-export type ResetPasswordData = z.infer<typeof ResetPasswordSchema>;
+export interface ResetPasswordData {
+  email: string;
+}
 
 export interface User {
   id: string;
