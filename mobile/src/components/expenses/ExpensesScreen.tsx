@@ -20,6 +20,7 @@ import { expenseApi } from "../../lib/api-client";
 import type { Expense, ExpenseCategoryType } from "../../lib/types";
 import ExpenseFilters, { type FilterOptions } from "./ExpenseFilters";
 import ExportModal from "./ExportModal";
+import { formatCurrency, formatCategory } from "shared";
 
 const ExpensesScreen = () => {
   const { user } = useAuth();
@@ -49,7 +50,7 @@ const ExpensesScreen = () => {
   // Photo state
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedPhotoBase64, setSelectedPhotoBase64] = useState<string | null>(
-    null
+    null,
   );
 
   const categories: {
@@ -77,8 +78,11 @@ const ExpensesScreen = () => {
     if (!user) return;
 
     const subscription = expenseApi.subscribeToExpenseChanges(
-      user.id,
-      (payload) => {
+      (payload: {
+        eventType: "INSERT" | "UPDATE" | "DELETE";
+        new?: Expense;
+        old?: Expense;
+      }) => {
         console.log("Real-time expense change:", payload);
 
         if (payload.eventType === "INSERT" && payload.new) {
@@ -92,7 +96,7 @@ const ExpensesScreen = () => {
           // Remove deleted expense from the list
           setExpenses((prev) => {
             const updatedExpenses = prev.filter(
-              (expense) => expense.id !== payload.old!.id
+              (expense) => expense.id !== payload.old!.id,
             );
             calculateStats(updatedExpenses);
             return updatedExpenses;
@@ -101,13 +105,13 @@ const ExpensesScreen = () => {
           // Update existing expense in the list
           setExpenses((prev) => {
             const updatedExpenses = prev.map((expense) =>
-              expense.id === payload.new!.id ? payload.new! : expense
+              expense.id === payload.new!.id ? payload.new! : expense,
             );
             calculateStats(updatedExpenses);
             return updatedExpenses;
           });
         }
-      }
+      },
     );
 
     return () => {
@@ -140,7 +144,7 @@ const ExpensesScreen = () => {
   const calculateStats = (expensesList: Expense[]) => {
     const totalAmount = expensesList.reduce(
       (sum, expense) => sum + expense.amount,
-      0
+      0,
     );
     setStats({
       totalAmount,
@@ -188,7 +192,7 @@ const ExpensesScreen = () => {
   const filteredStats = useMemo(() => {
     const totalAmount = filteredExpenses.reduce(
       (sum, expense) => sum + expense.amount,
-      0
+      0,
     );
     const totalCount = filteredExpenses.length;
 
@@ -197,13 +201,6 @@ const ExpensesScreen = () => {
       totalCount,
     };
   }, [filteredExpenses]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
 
   const getCategoryEmoji = (category: string) => {
     const categoryObj = categories.find((c) => c.value === category);
@@ -219,7 +216,7 @@ const ExpensesScreen = () => {
       if (!permissionResult.granted) {
         Alert.alert(
           "Permission needed",
-          "Please allow access to your photo library"
+          "Please allow access to your photo library",
         );
         return;
       }
@@ -234,7 +231,7 @@ const ExpensesScreen = () => {
             if (!cameraPermission.granted) {
               Alert.alert(
                 "Permission needed",
-                "Please allow access to your camera"
+                "Please allow access to your camera",
               );
               return;
             }
@@ -361,7 +358,7 @@ const ExpensesScreen = () => {
               } else {
                 Alert.alert(
                   "Error",
-                  result.error || "Failed to delete expense"
+                  result.error || "Failed to delete expense",
                 );
               }
             } catch (error) {
@@ -369,7 +366,7 @@ const ExpensesScreen = () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -1183,7 +1180,7 @@ const ExpensesScreen = () => {
                       setSelectedExpense(null);
                       setTimeout(
                         () => handleDeleteExpense(expenseToDelete),
-                        300
+                        300,
                       );
                     }
                   }}
@@ -1347,7 +1344,7 @@ const ExpensesScreen = () => {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
-                        }
+                        },
                       )}
                     </Text>
                   </View>

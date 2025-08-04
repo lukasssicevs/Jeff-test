@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { authApi } from "./api-client";
+import { authApiMobile } from "./api-client";
 import type { User, AuthSession } from "./types";
 
 interface AuthContextType {
@@ -8,12 +8,12 @@ interface AuthContextType {
   loading: boolean;
   signIn: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ success: boolean; error?: string }>;
   signUp: (
     email: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => Promise<{
     success: boolean;
     error?: string;
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session on load
     const checkSession = async () => {
       try {
-        const result = await authApi.getCurrentUser();
+        const result = await authApiMobile.getCurrentUser();
         if (result.data) {
           setUser(result.data);
         }
@@ -50,11 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const result = await authApi.signIn(email, password);
+      const result = await authApiMobile.signIn(email, password);
 
       if (result.success) {
         // Get user after successful sign in
-        const userResult = await authApi.getCurrentUser();
+        const userResult = await authApiMobile.getCurrentUser();
         if (userResult.data) {
           setUser(userResult.data);
         }
@@ -75,11 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (
     email: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => {
     try {
       setLoading(true);
-      const result = await authApi.signUp(email, password, confirmPassword);
+      const result = await authApiMobile.signUp(
+        email,
+        password,
+        confirmPassword,
+      );
 
       if (result.success) {
         if (result.needsVerification) {
@@ -89,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
         // Get user after successful sign up
-        const userResult = await authApi.getCurrentUser();
+        const userResult = await authApiMobile.getCurrentUser();
         if (userResult.data) {
           setUser(userResult.data);
         }
@@ -110,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setLoading(true);
-      const result = await authApi.signOut();
+      const result = await authApiMobile.signOut();
 
       if (result.success) {
         setUser(null);

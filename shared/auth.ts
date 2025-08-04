@@ -66,7 +66,7 @@ export class SupabaseAuth {
   // Sign up with email and password
   async signUp(
     email: string,
-    password: string
+    password: string,
   ): Promise<AuthResponse<AuthSession>> {
     try {
       const { data, error } = await this.supabase.auth.signUp({
@@ -101,7 +101,7 @@ export class SupabaseAuth {
   // Sign in with email and password
   async signIn(
     email: string,
-    password: string
+    password: string,
   ): Promise<AuthResponse<AuthSession>> {
     try {
       const { data, error } = await this.supabase.auth.signInWithPassword({
@@ -203,7 +203,7 @@ export class SupabaseAuth {
   // Reset password
   async resetPassword(
     email: string,
-    redirectTo?: string
+    redirectTo?: string,
   ): Promise<AuthResponse<null>> {
     try {
       const { error } = await this.supabase.auth.resetPasswordForEmail(email, {

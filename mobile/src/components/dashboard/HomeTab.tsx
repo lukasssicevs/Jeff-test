@@ -5,6 +5,7 @@ import { useAuth } from "../../lib/auth-context";
 import { expenseApi } from "../../lib/api-client";
 import type { Expense } from "../../lib/types";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { formatCurrency, formatCategory } from "shared";
 
 interface HomeTabProps {
   onTabChange?: (tab: "home" | "expenses") => void;
@@ -47,12 +48,15 @@ export default function HomeTab({
     if (!user) return;
 
     const subscription = expenseApi.subscribeToExpenseChanges(
-      user.id,
-      (payload) => {
+      (payload: {
+        eventType: "INSERT" | "UPDATE" | "DELETE";
+        new?: Expense;
+        old?: Expense;
+      }) => {
         console.log("HomeTab: Real-time expense change:", payload);
         // Reload stats when expenses change
         loadStats();
-      }
+      },
     );
 
     return () => {
@@ -67,7 +71,7 @@ export default function HomeTab({
         const expenses = result.data;
         const totalAmount = expenses.reduce(
           (sum, expense) => sum + expense.amount,
-          0
+          0,
         );
 
         // Calculate this month's expenses
@@ -81,7 +85,7 @@ export default function HomeTab({
         });
         const thisMonth = thisMonthExpenses.reduce(
           (sum, expense) => sum + expense.amount,
-          0
+          0,
         );
 
         // Calculate daily average for this month
@@ -96,7 +100,7 @@ export default function HomeTab({
         });
 
         const mostPopularCategoryEntry = Object.entries(categoryCount).sort(
-          ([, a], [, b]) => b - a
+          ([, a], [, b]) => b - a,
         )[0];
 
         const mostPopularCategory = mostPopularCategoryEntry
@@ -123,13 +127,6 @@ export default function HomeTab({
     } catch (error) {
       console.error("Error loading stats:", error);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
   };
 
   const getCategoryEmoji = (category: string) => {

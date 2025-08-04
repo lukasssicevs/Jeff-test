@@ -39,3 +39,9 @@ export interface AuthSession {
   refreshToken: string;
   expiresAt: number;
 }
+
+export interface AuthResult {
+  success: boolean;
+  error?: string;
+  needsVerification?: boolean;
+}

@@ -54,13 +54,13 @@ export class ExpenseExporter {
 
     const totalAmount = expenses.reduce(
       (sum, expense) => sum + expense.amount,
-      0
+      0,
     );
     const totalCount = expenses.length;
 
     // Sort expenses by date to get range
     const sortedExpenses = [...expenses].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
     const dateRange = {
       start:
@@ -96,7 +96,7 @@ export class ExpenseExporter {
 
   static exportToCSV(
     expenses: Expense[],
-    options: ExportOptions = { format: "csv" }
+    options: ExportOptions = { format: "csv" },
   ): string {
     const summary = this.generateSummary(expenses);
     let csv = "";
@@ -140,7 +140,7 @@ export class ExpenseExporter {
 
   static exportToJSON(
     expenses: Expense[],
-    options: ExportOptions = { format: "json" }
+    options: ExportOptions = { format: "json" },
   ): string {
     const summary = this.generateSummary(expenses);
 

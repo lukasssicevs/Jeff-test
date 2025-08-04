@@ -34,7 +34,7 @@ export default function ExpenseFilters({
 }: ExpenseFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [categorySelection, setCategorySelection] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // Sync category selection with filters
@@ -47,12 +47,12 @@ export default function ExpenseFilters({
   }, [filters.category]);
 
   const hasActiveFilters = Object.values(filters).some(
-    (value) => value !== undefined && value !== "" && value !== null
+    (value) => value !== undefined && value !== "" && value !== null,
   );
 
   const handleFilterChange = (
     key: keyof FilterOptions,
-    value: string | number | undefined
+    value: string | number | undefined,
   ) => {
     onFiltersChange({
       ...filters,
@@ -92,7 +92,7 @@ export default function ExpenseFilters({
               <Chip color="primary" variant="flat" size="sm">
                 {
                   Object.values(filters).filter(
-                    (v) => v !== undefined && v !== "" && v !== null
+                    (v) => v !== undefined && v !== "" && v !== null,
                   ).length
                 }{" "}
                 active

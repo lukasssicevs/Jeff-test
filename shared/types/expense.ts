@@ -57,6 +57,15 @@ export interface CreateExpenseData {
   photo?: File | Blob | MobilePhotoData;
 }
 
+// Alias for mobile compatibility
+export interface CreateExpenseRequest {
+  amount: number;
+  category: ExpenseCategoryType;
+  description: string;
+  date: string;
+  photo?: MobilePhotoData;
+}
+
 export interface UpdateExpenseData {
   amount?: number;
   category?: ExpenseCategoryType;

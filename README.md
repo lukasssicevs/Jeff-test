@@ -52,7 +52,7 @@ Each workspace can be developed independently:
 
 ```bash
 cd web && npm run dev          # Web development
-cd mobile && npm run start     # Mobile development  
+cd mobile && npm run start     # Mobile development
 cd shared && npm run dev       # Shared development (watch mode)
 ```
 

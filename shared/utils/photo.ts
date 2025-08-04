@@ -16,7 +16,7 @@ export class PhotoUploader {
   async uploadExpensePhoto(
     file: File | Blob,
     userId: string,
-    expenseId?: string
+    expenseId?: string,
   ): Promise<PhotoUploadResult> {
     try {
       console.log("PhotoUploader: Starting upload:", {
@@ -98,7 +98,7 @@ export class PhotoUploader {
     base64Data: string,
     mimeType: string,
     userId: string,
-    expenseId?: string
+    expenseId?: string,
   ): Promise<PhotoUploadResult> {
     try {
       console.log("PhotoUploader: Starting mobile upload:", {
@@ -240,7 +240,7 @@ export class PhotoUploader {
 
       // Find the bucket name and extract everything after it
       const bucketIndex = pathParts.findIndex(
-        (part) => part === "expense-photos"
+        (part) => part === "expense-photos",
       );
       if (bucketIndex === -1 || bucketIndex === pathParts.length - 1) {
         return null;
@@ -289,7 +289,7 @@ export class PhotoUploader {
   static async compressPhoto(
     file: File,
     maxWidth: number = 1200,
-    quality: number = 0.8
+    quality: number = 0.8,
   ): Promise<File> {
     return new Promise((resolve) => {
       const canvas = document.createElement("canvas");
@@ -320,7 +320,7 @@ export class PhotoUploader {
             }
           },
           file.type,
-          quality
+          quality,
         );
       };
 

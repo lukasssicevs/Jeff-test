@@ -52,7 +52,7 @@ export default function SignupScreen({
         Alert.alert(
           "Check Your Email",
           `Account created successfully! Please check your email ${email} and click the verification link to complete your account setup.`,
-          [{ text: "OK", onPress: onNavigateToLogin }]
+          [{ text: "OK", onPress: onNavigateToLogin }],
         );
       } else {
         onSignupSuccess();

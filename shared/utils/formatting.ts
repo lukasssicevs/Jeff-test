@@ -42,3 +42,16 @@ export function truncateText(text: string, maxLength: number): string {
 export function capitalizeFirst(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 }
+
+// Currency formatting
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+}
+
+// Category formatting
+export function formatCategory(category: string): string {
+  return category.charAt(0).toUpperCase() + category.slice(1);
+}

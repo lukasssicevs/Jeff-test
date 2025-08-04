@@ -57,7 +57,7 @@ export default function ExpensesPage() {
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [categorySelection, setCategorySelection] = useState<Set<string>>(
-    new Set([ExpenseCategory.OTHER])
+    new Set([ExpenseCategory.OTHER]),
   );
 
   // Sync category selection with form data
@@ -137,14 +137,14 @@ export default function ExpensesPage() {
       } else if (payload.eventType === "DELETE" && payload.old) {
         // Remove deleted expense from the list
         setExpenses((prev) =>
-          prev.filter((expense) => expense.id !== payload.old!.id)
+          prev.filter((expense) => expense.id !== payload.old!.id),
         );
       } else if (payload.eventType === "UPDATE" && payload.new) {
         // Update existing expense in the list
         setExpenses((prev) =>
           prev.map((expense) =>
-            expense.id === payload.new!.id ? payload.new! : expense
-          )
+            expense.id === payload.new!.id ? payload.new! : expense,
+          ),
         );
       }
     });
@@ -194,7 +194,7 @@ export default function ExpensesPage() {
   const filteredStats = useMemo(() => {
     const totalAmount = filteredExpenses.reduce(
       (sum, expense) => sum + expense.amount,
-      0
+      0,
     );
     const totalCount = filteredExpenses.length;
 
@@ -231,7 +231,7 @@ export default function ExpensesPage() {
       } else {
         console.error(
           "Failed to add expense:",
-          result?.error || "Unknown error"
+          result?.error || "Unknown error",
         );
       }
     } catch (error) {
@@ -260,7 +260,7 @@ export default function ExpensesPage() {
     setPhotoPreview(null);
     // Reset the input
     const fileInput = document.getElementById(
-      "photo-input"
+      "photo-input",
     ) as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
@@ -276,7 +276,7 @@ export default function ExpensesPage() {
       } else {
         console.error(
           "Failed to delete expense:",
-          result?.error || "Unknown error"
+          result?.error || "Unknown error",
         );
       }
     } catch (error) {

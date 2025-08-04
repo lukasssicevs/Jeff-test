@@ -17,12 +17,12 @@ interface AuthContextType {
   loading: boolean;
   signIn: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ success: boolean; error?: string }>;
   signUp: (
     email: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => Promise<{
     success: boolean;
     error?: string;
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (
     email: string,
     password: string,
-    confirmPassword: string
+    confirmPassword: string,
   ) => {
     try {
       setLoading(true);

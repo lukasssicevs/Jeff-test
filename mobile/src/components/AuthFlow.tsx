@@ -8,7 +8,7 @@ interface AuthFlowProps {
 
 export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
   const [currentScreen, setCurrentScreen] = useState<"login" | "signup">(
-    "login"
+    "login",
   );
 
   console.log("currentScreen", currentScreen);

@@ -18,9 +18,6 @@ export class AuthApi {
           email: data.email,
           password: data.password,
         },
-        {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        }
       );
 
       if (error) {
@@ -123,7 +120,7 @@ export class AuthApi {
   async resetPassword(data: ResetPasswordData): Promise<ApiResponse<null>> {
     try {
       const { error } = await this.apiClient.client.auth.resetPasswordForEmail(
-        data.email
+        data.email,
       );
 
       if (error) {

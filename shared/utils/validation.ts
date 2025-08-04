@@ -20,7 +20,7 @@ export function isStrongPassword(password: string): boolean {
 // Generic validation helper
 export function validateSchema<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): {
   success: boolean;
   data?: T;

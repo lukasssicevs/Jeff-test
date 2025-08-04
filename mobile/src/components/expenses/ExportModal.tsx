@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import type { Expense, ExportOptions } from "../../lib/types";
-import { ExpenseExporter } from "../../lib/api-client";
+import { ExpenseExporter } from "shared";
 
 interface ExportModalProps {
   expenses: Expense[];
@@ -32,29 +32,24 @@ export default function ExportModal({
       setExporting(true);
 
       const options: ExportOptions = { format };
-      const result = await ExpenseExporter.exportExpenses(expenses, options);
-
-      if (!result.success || !result.data) {
-        Alert.alert("Export Failed", result.error || "Unknown error");
-        return;
-      }
+      const content = ExpenseExporter.export(expenses, options);
 
       // Create file
-      const fileName = `expenses_${new Date().toISOString().split("T")[0]}.${format}`;
+      const fileName = ExpenseExporter.getFileName(format);
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      await FileSystem.writeAsStringAsync(fileUri, result.data);
+      await FileSystem.writeAsStringAsync(fileUri, content);
 
       // Share file
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
-          mimeType: format === "csv" ? "text/csv" : "application/json",
+          mimeType: ExpenseExporter.getMimeType(format),
           dialogTitle: `Export Expenses as ${format.toUpperCase()}`,
         });
       } else {
         Alert.alert(
           "Export Complete",
-          `File saved as ${fileName} in app documents`
+          `File saved as ${fileName} in app documents`,
         );
       }
 

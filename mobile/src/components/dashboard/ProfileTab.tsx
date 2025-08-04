@@ -11,25 +11,21 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            const result = await signOut();
-            if (result.success) {
-              onSignOut();
-            } else {
-              Alert.alert("Error", result.error || "Failed to sign out");
-            }
-          },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          const result = await signOut();
+          if (result.success) {
+            onSignOut();
+          } else {
+            Alert.alert("Error", result.error || "Failed to sign out");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -38,8 +34,8 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
       <View
         className="p-6 rounded-xl border border-white/20 mb-6"
         style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          shadowColor: '#000',
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
@@ -48,17 +44,17 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
       >
         <View className="items-center">
           <LinearGradient
-            colors={['#4f46e5', '#3b82f6']}
+            colors={["#4f46e5", "#3b82f6"]}
             className="w-20 h-20 rounded-full items-center justify-center mb-4"
           >
             <Text className="text-3xl">👤</Text>
           </LinearGradient>
-          
+
           <Text className="text-xl font-bold text-slate-800 mb-1">
-            {user?.email?.split('@')[0] || 'User'}
+            {user?.email?.split("@")[0] || "User"}
           </Text>
           <Text className="text-slate-600">
-            {user?.email || 'user@example.com'}
+            {user?.email || "user@example.com"}
           </Text>
         </View>
       </View>
@@ -67,8 +63,8 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
       <View
         className="p-6 rounded-xl border border-white/20 mb-6"
         style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          shadowColor: '#000',
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
@@ -101,8 +97,8 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
       <View
         className="p-6 rounded-xl border border-blue-200 mb-6"
         style={{
-          backgroundColor: 'rgba(219, 234, 254, 0.8)',
-          shadowColor: '#000',
+          backgroundColor: "rgba(219, 234, 254, 0.8)",
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
@@ -118,9 +114,7 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
         </Text>
 
         <View className="space-y-2">
-          <Text className="text-blue-700 text-sm">
-            ✅ Glassmorphism UI
-          </Text>
+          <Text className="text-blue-700 text-sm">✅ Glassmorphism UI</Text>
           <Text className="text-blue-700 text-sm">✅ NativeWind styling</Text>
           <Text className="text-blue-700 text-sm">
             ✅ TypeScript everywhere
@@ -134,10 +128,7 @@ export default function ProfileTab({ onSignOut }: ProfileTabProps) {
         onPress={handleSignOut}
         className="w-full rounded-xl overflow-hidden mb-6"
       >
-        <LinearGradient
-          colors={['#ef4444', '#dc2626']}
-          className="py-4 px-6"
-        >
+        <LinearGradient colors={["#ef4444", "#dc2626"]} className="py-4 px-6">
           <Text className="text-white text-center text-lg font-semibold">
             Sign Out
           </Text>

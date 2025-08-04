@@ -76,7 +76,7 @@ export default function ExpenseFilters({
   };
 
   const hasActiveFilters = Object.values(localFilters).some(
-    (value) => value !== undefined && value !== "" && value !== null
+    (value) => value !== undefined && value !== "" && value !== null,
   );
 
   return (
@@ -401,7 +401,7 @@ export default function ExpenseFilters({
                       onChangeText={(value) =>
                         handleFilterChange(
                           "minAmount",
-                          value ? parseFloat(value) : undefined
+                          value ? parseFloat(value) : undefined,
                         )
                       }
                       placeholder="0.00"
@@ -435,7 +435,7 @@ export default function ExpenseFilters({
                       onChangeText={(value) =>
                         handleFilterChange(
                           "maxAmount",
-                          value ? parseFloat(value) : undefined
+                          value ? parseFloat(value) : undefined,
                         )
                       }
                       placeholder="1000.00"

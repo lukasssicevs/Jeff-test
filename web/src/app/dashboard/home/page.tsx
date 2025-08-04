@@ -3,7 +3,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../../../lib/auth-context";
 import Link from "next/link";
-import { ExpenseApi, type Expense, type ExpenseCategoryType } from "shared";
+import {
+  ExpenseApi,
+  type Expense,
+  type ExpenseCategoryType,
+  formatCurrency,
+  formatCategory,
+} from "shared";
 import { apiClient } from "../../../lib/supabase";
 import { Card, CardBody } from "@heroui/card";
 import { Spinner } from "@heroui/spinner";
@@ -28,16 +34,6 @@ export default function DashboardHomePage() {
   const [showExportModal, setShowExportModal] = useState(false);
 
   // Utility functions (defined before usage)
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
-  const formatCategory = useCallback((category: string) => {
-    return category.charAt(0).toUpperCase() + category.slice(1);
-  }, []);
 
   const getCategoryEmoji = useCallback((category: ExpenseCategoryType) => {
     const emojiMap = {
@@ -141,7 +137,7 @@ export default function DashboardHomePage() {
 
     const thisMonthAmount = thisMonthExpenses.reduce(
       (sum, expense) => sum + expense.amount,
-      0
+      0,
     );
 
     // Calculate daily average for this month
@@ -156,7 +152,7 @@ export default function DashboardHomePage() {
     });
 
     const mostPopularCategory = Object.entries(categoryCount).sort(
-      ([, a], [, b]) => b - a
+      ([, a], [, b]) => b - a,
     )[0];
 
     return {
@@ -167,7 +163,7 @@ export default function DashboardHomePage() {
         ? {
             name: formatCategory(mostPopularCategory[0]),
             emoji: getCategoryEmoji(
-              mostPopularCategory[0] as ExpenseCategoryType
+              mostPopularCategory[0] as ExpenseCategoryType,
             ),
             count: mostPopularCategory[1],
           }

@@ -55,7 +55,7 @@ export class ExpenseApi {
           const uploadResult = await photoUploader.uploadExpensePhotoMobile(
             mobilePhoto.base64,
             mobilePhoto.mimeType,
-            user.id
+            user.id,
           );
 
           console.log("ExpenseApi: Mobile photo upload result:", uploadResult);
@@ -63,7 +63,7 @@ export class ExpenseApi {
           if (!uploadResult.success) {
             console.error(
               "ExpenseApi: Mobile photo upload failed:",
-              uploadResult.error
+              uploadResult.error,
             );
             return { error: uploadResult.error || "Failed to upload photo" };
           }
@@ -79,7 +79,7 @@ export class ExpenseApi {
 
           const uploadResult = await photoUploader.uploadExpensePhoto(
             data.photo as File | Blob,
-            user.id
+            user.id,
           );
 
           console.log("ExpenseApi: Web photo upload result:", uploadResult);
@@ -87,7 +87,7 @@ export class ExpenseApi {
           if (!uploadResult.success) {
             console.error(
               "ExpenseApi: Web photo upload failed:",
-              uploadResult.error
+              uploadResult.error,
             );
             return { error: uploadResult.error || "Failed to upload photo" };
           }
@@ -160,7 +160,7 @@ export class ExpenseApi {
       if (filters?.offset) {
         query = query.range(
           filters.offset,
-          filters.offset + (filters.limit || 50) - 1
+          filters.offset + (filters.limit || 50) - 1,
         );
       }
 
@@ -211,7 +211,7 @@ export class ExpenseApi {
 
   async updateExpense(
     id: string,
-    data: UpdateExpenseData
+    data: UpdateExpenseData,
   ): Promise<ApiResponse<Expense>> {
     try {
       // Validate input data
@@ -294,7 +294,7 @@ export class ExpenseApi {
       // Calculate statistics
       const totalAmount = expenses.reduce(
         (sum, expense) => sum + expense.amount,
-        0
+        0,
       );
       const totalCount = expenses.length;
 
@@ -311,7 +311,7 @@ export class ExpenseApi {
           acc[category].count += 1;
           return acc;
         },
-        {} as Record<ExpenseCategoryType, { amount: number; count: number }>
+        {} as Record<ExpenseCategoryType, { amount: number; count: number }>,
       );
 
       const stats: ExpenseStats = {
@@ -335,14 +335,14 @@ export class ExpenseApi {
   }
 
   async getExpensesByCategory(
-    category: ExpenseCategoryType
+    category: ExpenseCategoryType,
   ): Promise<ApiResponse<Expense[]>> {
     return this.getExpenses({ category });
   }
 
   async getExpensesByDateRange(
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<ApiResponse<Expense[]>> {
     return this.getExpenses({ startDate, endDate });
   }
@@ -353,7 +353,7 @@ export class ExpenseApi {
       eventType: "INSERT" | "UPDATE" | "DELETE";
       new?: Expense;
       old?: Expense;
-    }) => void
+    }) => void,
   ) {
     const channel = this.apiClient.client
       .channel("expenses_changes")
@@ -371,7 +371,7 @@ export class ExpenseApi {
             new: payload.new as Expense,
             old: payload.old as Expense,
           });
-        }
+        },
       )
       .subscribe();
 

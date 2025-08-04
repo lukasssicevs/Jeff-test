@@ -180,45 +180,17 @@ export default function ExportModal({
               <Switch
                 isSelected={includeHeaders}
                 onValueChange={setIncludeHeaders}
-                isDisabled={format === "summary"}
                 size="sm"
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">Include Headers</span>
                   <span className="text-xs text-gray-500">
-                    {format === "summary"
-                      ? "Not applicable for summary format"
-                      : "Add column headers to the exported file"}
+                    Add column headers to the exported file
                   </span>
                 </div>
               </Switch>
             </div>
           </div>
-
-          {/* Preview */}
-          {format === "summary" && (
-            <>
-              <Divider />
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <span>👁️</span>
-                  Preview
-                </h4>
-                <Card className="bg-gray-50">
-                  <CardBody className="p-4">
-                    <div className="text-sm font-mono whitespace-pre-wrap text-gray-700">
-                      {ExpenseExporter.generateTextSummary(expenses).slice(
-                        0,
-                        300
-                      )}
-                      {ExpenseExporter.generateTextSummary(expenses).length >
-                        300 && "..."}
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            </>
-          )}
         </ModalBody>
 
         <ModalFooter>
