@@ -1,67 +1,44 @@
-# JEFF-TEST Monorepo
+# Expense Tracker Monorepo
 
-A clean monorepo with Next.js web app, Expo React Native mobile app, and shared code.
+Full-stack expense tracking app with web and mobile clients.
 
-## Structure
+## Setup
 
-```
-├── web/          # Next.js 15 web application
-├── mobile/       # Expo 53 React Native mobile app
-├── shared/       # Shared code (types, API clients, utilities)
-└── package.json  # Root workspace configuration
-```
-
-## Quick Start
+**Prerequisites:** Node.js 18+, npm 10+
 
 ```bash
-# Install all dependencies
+# 1. Clone and install
+git clone <repo-url>
+cd expense-tracker
 npm install
 
-# Build shared package first
+# 2. Create environment files
+echo "NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key" > web/.env.local
+
+echo "EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key" > mobile/.env
+
+# 3. Build shared code
 npm run build:shared
 
-# Run web app (localhost:3000)
-npm run dev:web
+# 4. Verify setup
+npm run verify
 
-# Run mobile app
-npm run dev:mobile
-
-# Run both apps concurrently
-npm run dev:all
+# 5. Start development
+npm run dev:all  # Both apps
+npm run dev:web  # Web only (localhost:3000)
+npm run dev:mobile  # Mobile only
 ```
 
-## Architecture
+## Stack
 
-- **Web**: Next.js 15 with React 19, TypeScript, Tailwind CSS
-- **Mobile**: Expo 53 with React Native, TypeScript, NativeWind
-- **Shared**: Common types, API clients, utilities
-- **Backend**: Supabase (database, auth, storage)
+- **Web:** Next.js 15 + React 19 + TypeScript + Tailwind
+- **Mobile:** Expo 53 + React Native + TypeScript
+- **Backend:** Supabase (auth, database, storage)
+- **Shared:** Type-safe API clients and utilities
 
 ## Features
 
-- ✅ Authentication (login/signup)
-- ✅ Expense management with photo uploads
-- ✅ Real-time updates
-- ✅ Data filtering and export
-- ✅ Responsive design
-- ✅ Type-safe shared code
-
-## Development
-
-Each workspace can be developed independently:
-
-```bash
-cd web && npm run dev          # Web development
-cd mobile && npm run start     # Mobile development
-cd shared && npm run dev       # Shared development (watch mode)
-```
-
-## Build
-
-```bash
-npm run build          # Build all workspaces
-npm run build:web      # Build web app only
-npm run build:shared   # Build shared package only
-```
-
-The mobile app uses Expo for builds - use `expo build:android` or `expo build:ios` for production builds.
+✅ Authentication • ✅ Expense tracking • ✅ Photo uploads  
+✅ Real-time sync • ✅ Data export • ✅ Mobile responsive

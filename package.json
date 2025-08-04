@@ -13,8 +13,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "npm run check-types --workspaces --if-present",
-    "clean": "rm -rf node_modules web/node_modules mobile/node_modules shared/node_modules",
-    "install:all": "npm install"
+    "verify": "node verify-setup.js",
+    "clean": "rm -rf node_modules web/node_modules mobile/node_modules shared/node_modules"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
